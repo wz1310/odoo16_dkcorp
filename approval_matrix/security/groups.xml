@@ -1,0 +1,33 @@
+<odoo>
+    <record model="ir.module.category" id="module_approval_matrix">
+        <field name="name">Approval Matrix</field>
+        <field name="description">Approval Matrix</field>
+        <field name="sequence">81</field>
+        <field name="parent_id" eval="False"/>
+    </record>
+
+    <record model="res.groups" id="group_approval_matrix_manager">
+        <field name="name">Approval Matrix Manager</field>
+        <field name="comment">Approval Matrix Manager</field>
+        <field name="category_id" ref="module_approval_matrix"/>
+        <field name="implied_ids" eval="[]"/>
+        <field name="menu_access" eval="[]"/>
+    </record>
+
+
+    <record model="ir.module.category" id="module_rejection_message">
+        <field name="name">Rejection Message</field>
+        <field name="description">Rejection Message</field>
+        <field name="sequence">81</field>
+        <field name="parent_id" eval="False"/>
+    </record>
+
+    <record model="res.groups" id="group_rejection_message_manager">
+        <field name="name">Rejection Message Manager</field>
+        <field name="comment">Rejection Message Manager</field>
+        <field name="category_id" ref="module_rejection_message"/>
+        <field name="implied_ids" eval="[]"/>
+        <field name="menu_access" eval="[]"/>
+    </record>
+    
+</odoo>

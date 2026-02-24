@@ -1,0 +1,172 @@
+<odoo>
+    <record model="ir.ui.view" id="approval_matrix_document_approval_tree_view">
+        <field name="name">Approval Matrix Document Approval Tree</field>
+        <field name="model">approval.matrix.document.approval</field>
+        <field name='priority'>10</field>
+        <field name="arch" type="xml">
+            <tree string="Approval List">
+                <field name="res_model"/>
+                <field name="res_name" />
+                <field name="matrix_id" readonly="1"/>
+                <field name="approver_seq" readonly="1" />
+                <field name="approver_ids" widget="many2many_tags" />
+                <field name="minimum_approved" />
+
+                <field name="approved_by_ids" widget="many2many_tags" />
+                <field name="rejected_by_ids" widget="many2many_tags" />
+                
+                <field name="approved_count" />
+                <field name="rejected_count" />
+                <field name="approved" readonly="1" />
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="approval_matrix_document_approval_form_view">
+        <field name="name">Document Approval Form</field>
+        <field name="model">approval.matrix.document.approval</field>
+        <field name='priority'>10</field>
+        <field name="arch" type="xml">
+            <form string="Doc Approval">
+                <header></header>
+                <sheet>
+                    <h1>
+                        <field name="matrix_id" placeholder="Matrix Rule" />
+                    </h1>
+                    <h3><field name="res_name" /></h3>
+                    <group>
+                        <!-- START HERE -->
+                        <!-- YOU CAN ERASE THIS SYNTAX -->
+                        <field name="matrix_id" readonly="1"/>
+                        <field name="approver_seq" readonly="1" />
+                        <field name="approver_ids" widget="many2many_tags" />
+                        <field name="minimum_approved" />
+                        
+                        <field name="approved_by_ids" widget="many2many_tags" />
+                        <field name="rejected_by_ids" widget="many2many_tags" />
+                        
+                        <field name="approved_count" />
+                        <field name="rejected_count" />
+                        <field name="approved" readonly="1" />
+                        
+                    </group>
+                </sheet>
+                <!--<footer></footer>-->
+                
+                <!-- UNCOMMENT IF USING Mail Track SYSTEM -->
+                <!--<div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>-->
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_approval_matrix_document_approval">
+        <field name="name">Document Approval</field>
+        <field name="res_model">approval.matrix.document.approval</field>
+        <!-- IF ODOO Version <= 12.0 REQUIRE view_type (UNCOMMENT THIS) -->
+        <!-- <field name="view_type">form</field> -->
+        <field name='view_mode'>tree,form</field>
+        <!-- <field name='view_id' ref='ref_view_id'/> -->
+        <field name="view_ids" eval="[
+                (5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('approval_matrix.approval_matrix_document_approval_tree_view'), 'sequence':2}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('approval_matrix.approval_matrix_document_approval_form_view'), 'sequence':3})
+                ]"/>
+    </record>
+
+
+
+
+    <record model="ir.ui.view" id="approval_matrix_document_readonly_tree_view">
+        <field name="name">Approval Matrix Document Approval Tree</field>
+        <field name="model">approval.matrix.document.approval</field>
+        <field name='priority'>9</field>
+        <field name="arch" type="xml">
+            <tree string="Approval List" >
+                <field name="res_model" readonly="1" />
+                <field name="res_name" readonly="1" />
+                <field name="matrix_id" readonly="1" />
+                <field name="approver_seq" readonly="1" />
+                <field name="approver_ids" widget="many2many_tags" readonly="1" />
+                <field name="minimum_approved" readonly="1" />
+
+                <field name="approved_by_ids" widget="many2many_tags" readonly="1" />
+                <field name="rejected_by_ids" widget="many2many_tags" readonly="1" />
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="approval_matrix_document_readonly_form_view">
+        <field name="name">Document Approval Form</field>
+        <field name="model">approval.matrix.document.approval</field>
+        <field name='priority'>9</field>
+        <field name="arch" type="xml">
+            <form string="Doc Approval">
+                <header></header>
+                <sheet>
+                    <h1>
+                        <field name="matrix_id" placeholder="Matrix Rule" readonly="1" />
+                    </h1>
+                    <h3><field name="res_name" readonly="1" /></h3>
+                    <group>
+                        <!-- START HERE -->
+                        <!-- YOU CAN ERASE THIS SYNTAX -->
+                        <field name="matrix_id" readonly="1"/>
+                        <field name="approver_seq" readonly="1" />
+                        <field name="approver_ids" widget="many2many_tags" readonly="1" />
+                        <field name="minimum_approved" readonly="1" />
+                        
+                        <field name="approved_by_ids" readonly="1" widget="many2many_tags" />
+                        <field name="rejected_by_ids" readonly="1" widget="many2many_tags" />
+                        
+                        <field name="approved_count" readonly="1" />
+                        <field name="rejected_count" readonly="1" />
+                        <field name="approved" readonly="1" />
+                        
+                    </group>
+                </sheet>
+                <!--<footer></footer>-->
+                
+                <!-- UNCOMMENT IF USING Mail Track SYSTEM -->
+                <!--<div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>-->
+            </form>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_approval_matrix_document_readonly">
+        <field name="name">Approval Matrix Document Readonly</field>
+        <field name="res_model">approval.matrix.document.approval</field>
+        <!-- IF ODOO Version <= 12.0 REQUIRE view_type (UNCOMMENT THIS) -->
+        <!-- <field name="view_type">form</field> -->
+        <field name='view_mode'>tree,form</field>
+        <!-- <field name='view_id' ref='ref_view_id'/> -->
+        <field name="view_ids" eval="[
+                (5, 0, 0),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('approval_matrix.approval_matrix_document_readonly_tree_view'), 'sequence':2}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('approval_matrix.approval_matrix_document_readonly_form_view'), 'sequence':3})
+                ]"
+        />
+    </record>
+
+    <menuitem action="action_approval_matrix_document_approval" id="approval_matrix_document_approval_menu" name="Doc. Approval" sequence="12" groups="approval_matrix.group_approval_matrix_manager" parent="approval_matrix.root_menu" />
+
+
+
+    <record id="action_server_approval_matrix_document_approval_send_notification" model="ir.actions.server">
+        <field name="name">Send Notification for Approver Docs</field>
+        <field name="model_id" ref="model_approval_matrix_document_approval"/>
+        <field name="binding_model_id" ref="model_approval_matrix_document_approval" />
+        <field name="state">code</field>
+        <field name="code">
+            if records:
+                records._send_notification()
+        </field>
+    </record>
+</odoo>

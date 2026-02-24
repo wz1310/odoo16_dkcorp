@@ -1,0 +1,164 @@
+<odoo>
+    <record model="ir.ui.view" id="approval_matrix_kanban_view">
+        <field name="name">Approval Matrix Kanban</field>
+        <field name="model">approval.matrix</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="name"/>
+                <field name="company_id"/>
+                <field name="create_date"/>
+                <field name="create_uid"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div t-attf-class="oe_kanban_card oe_kanban_global_click">
+                            <div class="o_kanban_record_top">
+                                <div class="o_kanban_record_headings">
+                                    <strong class="o_kanban_record_title"><span><t t-esc="record.name.value"/></span></strong>
+                                </div>
+                                <strong>
+                                    <span>
+                                        <!-- HERE -->
+                                        <span t-esc="record.company_id.value" />
+                                    </span>
+                                </strong>
+                            </div>
+                            <div class="o_kanban_record_body">
+                                
+                            </div>
+                            <div class="o_kanban_record_bottom">
+                                <div class="oe_kanban_bottom_left text-muted">
+                                    <span><t t-esc="record.create_uid.value"/> <t t-esc="record.create_date.value"/></span>
+                                </div>
+                                <div class="oe_kanban_bottom_right">
+                                    <span class="pull-right text-right">
+                                        <!-- <field name="state" widget="label_selection" options="{'classes': {'draft': 'default', 'cancel': 'default', 'none': 'danger', 'open': 'warning',
+                                        'paid': 'success'}}"/> -->
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="approval_matrix_tree_view">
+        <field name="name">Approval Matrix Tree</field>
+        <field name="model">approval.matrix</field>
+        <field name="arch" type="xml">
+            <tree string="Approval Matrix">
+                <field name="name"/>
+                <field name="company_id"/>
+                <field name="approver_ids" widget="many2many_tags"/>
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.ui.view" id="approval_matrix_form_view">
+        <field name="name">Approval Matrix Form</field>
+        <field name="model">approval.matrix</field>
+        <field name="arch" type="xml">
+            <form string="Approval Matrix">
+                <header></header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button confirm="Are you Sure?" id="btn_boolean_toggle_active" name="toggle_active" class="oe_stat_button" type="object" icon="fa-check">
+                            <field name="active" widget="boolean_button" options="{'terminology':{'string_true':'Active', 'hover_true': 'Archive', 'string_false':'Archived','hover_false': 'Activate'}}" />
+                        </button>
+                    </div>
+                    <h1>
+                        <field name="name" placeholder="Matrix Name" />
+                    </h1>
+                    <h4>
+                        <field name="company_id" placeholder="Company" />
+                    </h4>
+                    <group>
+                        <!-- START HERE -->
+                        <!-- YOU CAN ERASE THIS SYNTAX -->
+                        <field name="model_id" invisible="context.get('default_res_model')" />
+                        <field name="res_model" invisible="context.get('default_res_model')" readonly="context.get('default_res_model')" />
+                        <field name="tag_id" domain="[('model_id','=',model_id)]" />
+                    </group>
+                    <notebook>
+                        <page id="page_rules" string="Rules">
+                            <!-- UNCOMMENT IF USING DOMAIN WIDGET CONCEPT -->
+                            <!-- <field name="model_name" />
+                            <field name="domain" widget="domain" options="{'model':'model_name'}"/> -->
+
+                            
+                            <field name="rule_ids" context="{'default_model_id':model_id}">
+                                <tree>
+                                    <field name="model_id" />
+                                    <field name="field_id" domain="[('model_id','=',model_id)]" />
+                                    <field name="operator" />
+                                    <field name="value" />
+
+                                    <field name="related_field_model" groups="base.group_no_one" />
+                                    <field name="m2o_value_id" />
+                                    <field name="m2o_value" groups="base.group_no_one" widget="reference"/>
+                                    
+                                </tree>
+                                <form>
+                                    <sheet>
+                                        <group>
+                                        <field name="model_id" />
+                                            <field name="field_id" domain="[('model_id','=',model_id)]" />
+                                            <field name="operator" />
+                                            <field name="value" />
+                                            <field name="related_field_model"  />
+                                            <field name="m2o_value_id" widget="M2oReference"  options="{'model_field':'related_field_model'}" attrs="{'invisible':[('related_field_model','=',False)]}" />
+                                            <field name="m2o_value" groups="base.group_no_one"  attrs="{'invisible':[('related_field_model','=',False)]}" />
+                                        </group>
+                                    </sheet>
+                                </form>
+                            </field>
+                        </page>
+                        <page id="page_approver" string="Approver">
+                            <group>
+                                <field name="dept_manager_as_approver" />
+                                <field name="user_request_field_id" domain="[('model_id','=',model_id), ('ttype','=','many2one'), ('relation','=','res.users')]" options="{'no_quick_create':True,'no_create':True}"/>
+                                
+                            </group>
+                            <field name="approver_ids" attrs="{'invisible':[('dept_manager_as_approver','=',True)], 'readonly':[('dept_manager_as_approver','=',True)]}">
+                                <tree editable="bottom">
+                                    <field name="seq" />
+                                    <field name="user_ids" widget="many2many_tags" />
+                                    <field name="require_all_approver" />
+                                    <field name="min_approver" attrs="{'invisible':[('require_all_approver','=',True)]}" />
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <!--<footer></footer>-->
+                
+                <!-- UNCOMMENT IF USING Mail Track SYSTEM -->
+                <!--<div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>-->
+            </form>
+        </field>
+    </record>
+
+
+    <record model="ir.actions.act_window" id="action_approval_matrix">
+        <field name="name">Aproval Matrix</field>
+        <field name="res_model">approval.matrix</field>
+        <!-- IF ODOO version <= 12 REQUIRE view_type (UNCOMMENT THIS) -->
+        <!-- <field name="view_type">form</field> -->
+        <field name='view_mode'>kanban,tree,form</field>
+        <!-- <field name='view_id' ref='ref_view_id'/> -->
+        <field name="view_ids" eval="[
+                (5, 0, 0),
+                (0, 0, {'view_mode': 'kanban', 'view_id': ref('approval_matrix.approval_matrix_kanban_view'), 'sequence':1}),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('approval_matrix.approval_matrix_tree_view'), 'sequence':2}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('approval_matrix.approval_matrix_form_view'), 'sequence':3})
+                ]"/>
+    </record>
+
+    <menuitem id="root_menu" name="Approval Matrix" web_icon="approval_matrix,static/src/img/menu-icon.png" sequence="80" groups="group_approval_matrix_manager" />
+
+    <menuitem action="action_approval_matrix" id="approval_matrix_menu" name="Approval Matrix Rule" sequence="11" groups="group_approval_matrix_manager" parent="approval_matrix.root_menu" />
+</odoo>

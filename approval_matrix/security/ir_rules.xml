@@ -1,0 +1,37 @@
+<odoo>
+    <record model="ir.rule" id="rule_approval_matrix_global">
+        <field name="name">Rule Approval Matrix Global</field>
+        <field name="model_id" ref="model_approval_matrix" />
+        <field name="perm_read" eval="True" />
+        <field name="perm_create" eval="True" />
+        <field name="perm_write" eval="True" />
+        <field name="perm_unlink" eval="True" />
+        <field name="domain_force">[('company_id','in',company_ids)]</field>
+        <field name="groups" eval="[]" />
+    </record>
+
+
+    <record model="ir.rule" id="rule_approval_matrix_document_approval_own">
+        <field name="name">Rule Own Approval Matrix Document Approval</field>
+        <field name="model_id" ref="model_approval_matrix_document_approval" />
+        <field name="perm_read" eval="True" />
+        <field name="perm_create" eval="False" />
+        <field name="perm_write" eval="True" />
+        <field name="perm_unlink" eval="False" />
+        <field name="domain_force">['|',('create_uid','=',user.id), ('approver_ids','in',user.id)]</field>
+        <field name="groups" eval="[(4,ref('base.group_user'))]" />
+        <field name="active" eval="False"/>
+    </record>
+
+    <record model="ir.rule" id="rule_approval_matrix_document_approval_manager">
+        <field name="name">Rule Own Approval Matrix Document Approval</field>
+        <field name="model_id" ref="model_approval_matrix_document_approval" />
+        <field name="perm_read" eval="True" />
+        <field name="perm_create" eval="False" />
+        <field name="perm_write" eval="True" />
+        <field name="perm_unlink" eval="False" />
+        <field name="domain_force">[(1,'=',1)]</field>
+        <field name="groups" eval="[(4,ref('approval_matrix.group_approval_matrix_manager'))]"/>
+        <field name="active" eval="False"/>
+    </record>
+</odoo>

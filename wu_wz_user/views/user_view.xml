@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_picking_form_approval_inherit" model="ir.ui.view">
+        <field name="name">stock.picking.form.approval.inherit</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="approving_matrix" string="Approve Matrix" type="object" 
+                        class="oe_highlight" 
+                        attrs="{'invisible': [('user_can_approve', '=', False)]}"/>
+                <button name="rejecting_matrix" string="Reject Matrix" type="object" 
+                        class="btn-danger" 
+                        attrs="{'invisible': [('user_can_approve', '=', False)]}"/>
+            </xpath>
+
+            <xpath expr="//notebook" position="inside">
+                <page string="Approval Matrix" name="approval_matrix">
+                    <group>
+                        <group>
+                            <field name="approved" readonly="1"/>
+                            <button string="Fetch Matrix" type="object" name="checking_approval_matrix" class="oe_highlight" groups="base.group_system" />
+                            <field name="user_can_approve" invisible="1"/>
+                        </group>
+                    </group>
+                    <field name="approval_ids" readonly="1">
+                        <tree>
+                            <field name="approver_seq"/>
+                            <field name="approver_ids" widget="many2many_tags"/>
+                            <field name="approved_by_ids" widget="many2many_tags"/>
+                            <field name="rejected_by_ids" widget="many2many_tags"/>
+                            <field name="minimum_approved"/>
+                            <field name="approved"/>
+                        </tree>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+</odoo>

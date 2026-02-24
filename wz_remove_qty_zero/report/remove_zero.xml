@@ -1,0 +1,25 @@
+<odoo>
+    <data>
+        <template id="report_delivery_document_inherit" inherit_id="mstl_report.report_delivery_document">
+            
+            <xpath expr="//t[@t-foreach='o.move_ids']" position="attributes">
+                <attribute name="t-foreach">o.move_ids.filtered(lambda l: l.quantity_done != 0)</attribute>
+            </xpath>
+
+            
+    <xpath expr="//table[3]//tr[1]" position="replace">
+        <tr>
+            <td style="width:100%;" align="right">
+                <span class="small-font">
+                    Dibuat: <t t-esc="o.write_uid.name"/> 
+                    | 
+                    <t t-set="now" t-value="datetime.datetime.now() + datetime.timedelta(hours=7)"/>
+                    <t t-esc="now.strftime('%d/%m/%Y %H:%M:%S')"/>
+                </span>
+            </td>
+        </tr>
+    </xpath>
+
+        </template>
+    </data>
+</odoo>

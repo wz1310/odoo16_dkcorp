@@ -1,0 +1,31 @@
+<odoo>
+    <record model="ir.ui.view" id="rejection_message_tree_view">
+        <field name="name">Rejection Message Tree</field>
+        <field name="model">rejection.message</field>
+        <field name='priority'>10</field>
+        <field name="arch" type="xml">
+            <tree string="Messages" editable="bottom">
+                <field name="res_model_id" invisible="context.get('default_res_model_id')"/>
+                <field name="res_model" invisible="context.get('default_res_model_id')"/>
+                <field name="name" />
+            </tree>
+        </field>
+    </record>
+
+    <record model="ir.actions.act_window" id="action_rejection_message">
+        <field name="name">Rejection Message</field>
+        <field name="res_model">rejection.message</field>
+        <!-- IF ODOO Version <= 12.0 REQUIRE view_type (UNCOMMENT THIS) -->
+        <!-- <field name="view_type">form</field> -->
+        <field name='view_mode'>tree</field>
+        <!-- <field name='view_id' ref='ref_view_id'/> -->
+        <!-- <field name="view_ids" eval="[
+                (5, 0, 0),
+                (0, 0, {'view_mode': 'kanban', 'view_id': ref('module.kanban_ref_id'), 'sequence':1}),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('module.tree_ref_id'), 'sequence':2}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('module.form_ref_id'), 'sequence':3})
+                ]"/> -->
+    </record>
+
+    <menuitem action="action_rejection_message" id="rejection_message_menu" name="Rejection Message" sequence="13" groups="approval_matrix.group_rejection_message_manager" parent="approval_matrix.root_menu" />
+</odoo>
