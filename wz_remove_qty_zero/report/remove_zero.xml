@@ -9,7 +9,6 @@
             
     <xpath expr="//table[3]//tr[1]" position="replace">
         <tr>
-            <!-- /////////////////////////////////// -->
             <td style="width:100%;" align="right">
                 <span class="small-font">
                     Dibuat: 
