@@ -11,7 +11,13 @@
         <tr>
             <td style="width:100%;" align="right">
                 <span class="small-font">
-                    Dibuat: <t t-esc="o.write_uid.name"/> 
+                    Dibuat: 
+                    <t t-if="o.user_id">
+                    <t t-esc="o.user_id.name"/>
+                    </t>
+                    <t t-else="">
+                    <t t-esc="o.write_uid.name"/>
+                    </t> 
                     | 
                     <t t-set="now" t-value="datetime.datetime.now() + datetime.timedelta(hours=7)"/>
                     <t t-esc="now.strftime('%d/%m/%Y %H:%M:%S')"/>
