@@ -4,7 +4,7 @@
     'category': 'Inventory',
     'summary': 'WZ Inherit MRP auto Consumed Qty',
     'author': 'WZ',
-    'depends': ['mrp'],
+    'depends': ['mrp','stock'],
     'data': [
         'views/mrp_qty_consume.xml'
     ],
