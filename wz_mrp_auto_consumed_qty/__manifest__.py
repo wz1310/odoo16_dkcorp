@@ -6,7 +6,7 @@
     'author': 'WZ',
     'depends': ['mrp'],
     'data': [
-        # 'views/mrp_qty_consume.xml'
+        'views/mrp_qty_consume.xml'
     ],
     'installable': True,
     'application': False,

@@ -19,8 +19,6 @@ class MrpProduction(models.Model):
 
     _inherit = 'mrp.production'
 
-    # automate = fields.Boolean()
-
 
     # def action_auto_qty_consume(self):
     #     print("jalan Auto Consume", fields.Date.today())
@@ -29,6 +27,11 @@ class MrpProduction(models.Model):
     #         x.qty_producing = x.product_qty
     #         x._onchange_producing()
     #         x.automate = True
+
+    @api.onchange('product_id')
+    def _onchanges_products_id(self):
+        for x in self.move_raw_ids:
+            x._onchange_products_id()
 
     def action_confirm(self):
         res = super(MrpProduction, self).action_confirm()
@@ -72,4 +75,17 @@ class MrpProduction(models.Model):
             AND m.state NOT IN ('done', 'cancel')
             AND ml.id IS NULL
             """, (self.env.uid, self.env.uid, mo_ids))
+        confirmed_mos._onchanges_products_id()
         return res
+
+
+class InheritSmove(models.Model):
+
+    _inherit = 'stock.move'
+
+    cost = fields.Float()
+
+    @api.onchange('product_id')
+    def _onchange_products_id(self):
+        for x in self:
+            x.cost = x.product_id.sudo().standard_price
