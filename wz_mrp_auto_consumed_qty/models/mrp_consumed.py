@@ -75,6 +75,7 @@ class MrpProduction(models.Model):
             AND m.state NOT IN ('done', 'cancel')
             AND ml.id IS NULL
             """, (self.env.uid, self.env.uid, mo_ids))
+        self.env.invalidate_all()
         confirmed_mos._onchanges_products_id()
         return res
 
@@ -88,4 +89,9 @@ class InheritSmove(models.Model):
     @api.onchange('product_id')
     def _onchange_products_id(self):
         for x in self:
-            x.cost = x.product_id.sudo().standard_price
+            x.cost = x.product_id.sudo().standard_price * x.quantity_done
+
+    @api.onchange('quantity_done')
+    def _onchanges_quantity_done(self):
+        for x in self:
+            x.cost = x.product_id.sudo().standard_price * x.quantity_done
