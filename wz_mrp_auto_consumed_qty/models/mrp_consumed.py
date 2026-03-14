@@ -33,6 +33,10 @@ class MrpProduction(models.Model):
         for x in self.move_raw_ids:
             x._onchange_products_id()
 
+    def _change_rill_costs(self):
+        for x in self.move_raw_ids:
+            x.change_rill_cost()
+
     def action_confirm(self):
         res = super(MrpProduction, self).action_confirm()
 
@@ -77,6 +81,7 @@ class MrpProduction(models.Model):
             """, (self.env.uid, self.env.uid, mo_ids))
         self.env.invalidate_all()
         confirmed_mos._onchanges_products_id()
+        confirmed_mos._change_rill_costs()
         return res
 
 
@@ -85,6 +90,19 @@ class InheritSmove(models.Model):
     _inherit = 'stock.move'
 
     cost = fields.Float()
+    rill_cost = fields.Float()
+    remark = fields.Text()
+
+    def change_rill_cost(self):
+        for x in self:
+            x.rill_cost = x.cost
+
+    @api.onchange('rill_cost')
+    def _onchange_rill_cost(self):
+        for x in self:
+            if not x.remark:
+                raise UserError(_('Remark tidak boleh kosong'))
+
 
     @api.onchange('product_id')
     def _onchange_products_id(self):
@@ -95,3 +113,10 @@ class InheritSmove(models.Model):
     def _onchanges_quantity_done(self):
         for x in self:
             x.cost = x.product_id.sudo().standard_price * x.quantity_done
+
+
+class InheritProduct(models.Model):
+
+    _inherit = 'product.product'
+
+    rill_cost = fields.Float()

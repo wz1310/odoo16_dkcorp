@@ -6,6 +6,19 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='move_raw_ids']/tree" position="inside">
                  <field name="cost" string="Cost" readonly="1" force_save="1"/>
+                 <field name="rill_cost" string="Rill Cost" force_save="1" attrs="{'readonly': [('state', 'in', ['draft','done'])]}"/>
+                 <field name="remark" string="Remarks" />
+            </xpath>
+        </field>
+    </record>
+
+        <record id="wz_prd_form_inherit" model="ir.ui.view">
+        <field name="name">wz_prd_form_inherit</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='default_code']" position="before">
+                 <field name="rill_cost" string="Rill Cost" widget="monetary" options="{'currency_field': 'currency_id', 'field_digits': True}" />
             </xpath>
         </field>
     </record>
