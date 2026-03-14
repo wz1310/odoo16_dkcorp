@@ -84,7 +84,6 @@ class MrpProduction(models.Model):
         confirmed_mos._change_rill_costs()
         return res
 
-
 class InheritSmove(models.Model):
 
     _inherit = 'stock.move'
@@ -113,6 +112,15 @@ class InheritSmove(models.Model):
     def _onchanges_quantity_done(self):
         for x in self:
             x.cost = x.product_id.sudo().standard_price * x.quantity_done
+
+    def write(self, vals):
+        res = super(InheritSmove, self).write(vals)
+        if 'state' in vals:
+            if vals['state'] == 'done':
+                for x in self:
+                    if x.rill_cost != x.cost and x.remark !=False:
+                        x.product_id.rill_cost = x.rill_cost/x.quantity_done
+        return res
 
 
 class InheritProduct(models.Model):
