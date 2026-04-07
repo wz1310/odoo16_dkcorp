@@ -158,6 +158,8 @@
                 ]"/>
     </record>
 
+    
+
     <menuitem id="root_menu" name="Approval Matrix" web_icon="approval_matrix,static/src/img/menu-icon.png" sequence="80" groups="group_approval_matrix_manager" />
 
     <menuitem action="action_approval_matrix" id="approval_matrix_menu" name="Approval Matrix Rule" sequence="11" groups="group_approval_matrix_manager" parent="approval_matrix.root_menu" />

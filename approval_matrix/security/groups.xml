@@ -6,12 +6,20 @@
         <field name="parent_id" eval="False"/>
     </record>
 
-    <record model="res.groups" id="group_approval_matrix_manager">
+    <!-- <record model="res.groups" id="group_approval_matrix_manager">
         <field name="name">Approval Matrix Manager</field>
         <field name="comment">Approval Matrix Manager</field>
         <field name="category_id" ref="module_approval_matrix"/>
         <field name="implied_ids" eval="[]"/>
         <field name="menu_access" eval="[]"/>
+    </record> -->
+    
+
+    <record id="group_approval_matrix_manager" model="res.groups">
+        <field name="name">Approval Matrix Manager</field>
+    </record>
+    <record id="group_rejection_message_manager" model="res.groups">
+        <field name="name">Rejection Message Manager</field>
     </record>
 
 
@@ -22,12 +30,12 @@
         <field name="parent_id" eval="False"/>
     </record>
 
-    <record model="res.groups" id="group_rejection_message_manager">
+    <!-- <record model="res.groups" id="group_rejection_message_manager">
         <field name="name">Rejection Message Manager</field>
         <field name="comment">Rejection Message Manager</field>
         <field name="category_id" ref="module_rejection_message"/>
         <field name="implied_ids" eval="[]"/>
         <field name="menu_access" eval="[]"/>
-    </record>
+    </record> -->
     
 </odoo>
