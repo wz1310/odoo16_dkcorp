@@ -21,6 +21,7 @@ class InheritConfirmDateWizard(models.TransientModel):
             picking = self.env['stock.picking'].search([('sale_id', '=', sale_obj.id), ('state', 'not in', ['cancel'])])
             if picking:
                 picking.partner_id = sale_obj.partner_id.id
+                picking.cek_matrix()
             if not sale_obj.commitment_date:
                 for pic in picking:
                     if self.confirmation_force_date:
@@ -36,3 +37,4 @@ class InheritConfirmDateWizard(models.TransientModel):
             picking = self.env['stock.picking'].search([('sale_id', '=', sale_obj.id), ('state', 'not in', ['cancel'])])
             if picking:
                 picking.partner_id = sale_obj.partner_id.id
+                picking.cek_matrix()

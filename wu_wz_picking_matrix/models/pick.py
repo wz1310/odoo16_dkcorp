@@ -13,7 +13,7 @@ class StockPickingInherit(models.Model):
     # Override fungsi compute agar tidak bernilai True saat tabel kosong
     @api.depends('approval_ids.approved')
     def _compute_approved(self):
-        print("uuuuuuuuuuuuuuuuuuuuu")
+        # print("uuuuuuuuuuuuuuuuuuuuu")
         for rec in self:
             if not rec.approval_ids:
                 rec.approved = False
@@ -29,7 +29,7 @@ class StockPickingInherit(models.Model):
     #     return super(StockPickingInherit, self).button_validate()
 
     def button_validate_custom(self):
-        print("oiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
+        # print("oiiiiiiiiiiiiiiiiiiiiiiiiiiiiii")
         # find_matrix = self.env['approval.matrix'].search([('res_model','=',self._name)]).active
         # print("find mat",find_matrix)
         # if self.approved != True and find_matrix == True:
@@ -37,6 +37,8 @@ class StockPickingInherit(models.Model):
         self.ensure_one()
         model = self._get_model()
         matrix = self.env['approval.matrix'].with_context(self._context.copy()).find_possible_matrix(self.company_id, model, self)
+        # print("_context.copy()",self._context.copy())
+        # print("modellllll", model)
         _logger.info(('result finding matrix-->',matrix))
         
         new_approvals = []
@@ -44,3 +46,15 @@ class StockPickingInherit(models.Model):
             if self.approved != True:
                 raise ValidationError(_("Butuh Approval"))
         return super(StockPickingInherit, self).button_validate_custom()
+
+    def cek_matrix(self):
+        # print("commmmmmmmmmmmmmmmmmmmm", self.company_id)
+        self.ensure_one()
+        model = self._get_model()
+        matrix = self.env['approval.matrix'].with_context(self._context.copy()).find_possible_matrix(self.company_id, model, self)
+        # print("_context.copy()",self._context.copy())
+        # _logger.info(('result finding matrix-->',matrix))
+        # print("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzmodel",model)
+        if len(matrix):
+            # print("ahaaaaaaaaaaaaaaaaaaa")
+            matrix.generate_approval_docs(model, self)
