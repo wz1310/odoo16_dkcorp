@@ -6,7 +6,7 @@
     'description': """Inherit User""",
     'depends': ['contacts','sale','approval_matrix', 'web_many2one_reference','stock'],
     'data': [
-        'views/user_view.xml'
+        'views/pick_view.xml'
     ],
     'installable': True,
     'auto_install': False,
