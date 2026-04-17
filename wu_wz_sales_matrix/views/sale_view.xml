@@ -18,8 +18,8 @@
                 <page string="Approval Matrix" name="approval_matrix">
                     <group>
                         <group>
-                            <field name="approved" readonly="1"/>
-                            <button string="Fetch Matrix" type="object" name="checking_approval_matrix" class="oe_highlight" groups="base.group_system" />
+                            <field name="approved" readonly="1" invisible="1"/>
+                            <button string="Fetch Matrix" type="object" name="checking_approval_matrix" class="oe_highlight" groups="wz_akses_group.group_fetch_matrix" />
                             <field name="user_can_approve" invisible="1"/>
                         </group>
                     </group>
