@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="wz_multi_upload_img.MultiImageUpload" owl="1">
+        <div class="o_field_x2many o_field_widget">
+            <div class="mb-3">
+                <input type="file" 
+                       t-ref="fileInput" 
+                       class="d-none" 
+                       multiple="multiple" 
+                       accept="image/*"
+                       t-on-change="onFileInputChange"/>
+                <div class="upload_button_wrapper" style="margin-bottom: 25px;">
+                <button class="btn btn-primary" t-on-click="onButtonClick">
+                    <i class="fa fa-upload me-1"/> Upload Multiple Images
+                </button>
+              </div>
+            </div>
+            <t t-call="web.X2ManyField"/>
+        </div>
+    </t>
+</templates>
