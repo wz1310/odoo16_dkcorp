@@ -20,15 +20,15 @@ class ProductImageCustom(models.Model):
     	'target': 'self',
     	}
 
-class ProductTemplate(models.Model):
-    _inherit = 'product.template'
+# class ProductTemplate(models.Model):
+#     _inherit = 'product.template'
 
-    # Gunakan model kustom kita di sini
-    multi_upload_images = fields.One2many(
-        'product.image.custom', 
-        'product_tmpl_id', 
-        string="Daftar Gambar Kustom"
-    )
+#     # Gunakan model kustom kita di sini
+#     multi_upload_images = fields.One2many(
+#         'product.image.custom', 
+#         'product_tmpl_id', 
+#         string="Daftar Gambar Kustom"
+#     )
 
 class DoImage(models.Model):
     _inherit = 'stock.picking'

@@ -1,13 +1,6 @@
 <odoo>
 
-<!-- 
-    <template id="assets_backend" inherit_id="web.assets_backend" name="M2o Reference Assets">
-        <xpath expr="." position="inside">
-            <script type="text/javascript" src="/web_many2one_reference/static/src/fields.js"></script>
-        </xpath>
-    </template> -->
-
-<record model="ir.ui.view" id="wz_inher_ptemplate">
+<!-- <record model="ir.ui.view" id="wz_inher_ptemplate">
         <field name="name">Inherit Prod Form MIS</field>
         <field name="model">product.template</field>
         <field name="inherit_id" ref="product.product_template_only_form_view" />
@@ -28,7 +21,7 @@
             </page>
             </xpath>
         </field>
-    </record>
+    </record> -->
 
 <record model="ir.ui.view" id="wz_inher_picking">
         <field name="name">Inherit Picking Form Image</field>
