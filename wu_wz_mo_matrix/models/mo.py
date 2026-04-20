@@ -29,7 +29,7 @@ class MrpApproveInherit(models.Model):
         if len(matrix):
             if self.approved != True:
                 raise ValidationError(_("Butuh Approval"))
-        return super(MrpApproveInherit, self).action_confirm_inherit()
+        return super(MrpApproveInherit, self).button_done_mark()
 
     # def cek_matrix(self):
     #     self.ensure_one()
