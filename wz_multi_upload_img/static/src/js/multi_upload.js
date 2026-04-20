@@ -30,6 +30,7 @@ export class MultiImageUpload extends X2ManyField {
         const root = record.model.root;
         const resId = record.resId;
         let successCount = 0;
+        const currentModel = record.resModel;
 
         try {
             // 🔥 CARA AMAN MASUK MODE EDIT DI ODOO 16
@@ -42,12 +43,22 @@ export class MultiImageUpload extends X2ManyField {
             for (const file of files) {
                 try {
                     const base64Data = await this.readFile(file);
-                    
-                    await this.orm.create("product.image.custom", [{
+                    const values = {
                         name: file.name,
                         image_1920: base64Data,
-                        product_tmpl_id: resId,
-                    }]);
+                    };
+                    if (currentModel === "product.template") {
+                        values.product_tmpl_id = resId;
+                    } else if (currentModel === "stock.picking") {
+                        values.do_img_id = resId;
+                    }
+                    await this.orm.create("product.image.custom", [values]);
+                    
+                    // await this.orm.create("product.image.custom", [{
+                    //     name: file.name,
+                    //     image_1920: base64Data,
+                    //     product_tmpl_id: resId,
+                    // }]);
 
                     successCount++;
                 } catch (error) {
