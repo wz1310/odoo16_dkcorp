@@ -1,0 +1,65 @@
+<odoo>
+
+<!-- 
+    <template id="assets_backend" inherit_id="web.assets_backend" name="M2o Reference Assets">
+        <xpath expr="." position="inside">
+            <script type="text/javascript" src="/web_many2one_reference/static/src/fields.js"></script>
+        </xpath>
+    </template> -->
+
+<record model="ir.ui.view" id="wz_inher_ptemplate">
+        <field name="name">Inherit Prod Form MIS</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_only_form_view" />
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+            <page string="Upload Image" name="image_upload">      
+                <field name="multi_upload_images" widget="multi_image">
+                <tree editable="bottom">
+                    <field name="image_1920" widget="image" options="{'size': [150, 150]}"/>
+                    <field name="name" required="0"/>
+                    <button name="action_download_image" 
+                            type="object" 
+                            icon="fa-download" 
+                            title="Download Gambar"
+                            aria-label="Download"/>
+                </tree>
+            </field>
+            </page>
+            </xpath>
+        </field>
+    </record>
+
+<record model="ir.ui.view" id="wz_inher_picking">
+        <field name="name">Inherit Picking Form Image</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form" />
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+            <page string="Upload Image" name="image_upload">      
+                <field name="multi_upload_images" widget="multi_image">
+                <tree editable="bottom">
+                    <field name="image_1920" widget="image" options="{'size': [150, 150]}"/>
+                    <field name="name" required="0"/>
+                    <button name="action_download_image" 
+                            type="object" 
+                            icon="fa-download" 
+                            title="Download Gambar"
+                            aria-label="Download"/>
+                </tree>
+            </field>
+            </page>
+            </xpath>
+            <xpath expr="//field[@name='state']" position="after">
+                <field name="delivery_state" widget="statusbar" invisible="1" statusbar_visible="confirmed,received"/>
+            </xpath>
+            <xpath expr="//button[@name='action_cancel']" position="after">
+                <button name="receive_do" string="Receive" type="object" class="btn-primary" attrs="{'invisible': ['|',('delivery_state', 'in', ['received']),('state', 'not in', ['done'])]}"/>
+            </xpath>
+            <xpath expr="//div[@name='button_box']" position="after">
+                <widget name="web_ribbon" title="Received" attrs="{'invisible': [('delivery_state', '!=', 'received')]}"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

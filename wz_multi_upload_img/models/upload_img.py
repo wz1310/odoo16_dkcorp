@@ -1,5 +1,6 @@
 # models/product_image_custom.py
-from odoo import models, fields
+from odoo import models, fields, _
+from odoo.exceptions import UserError
 
 class ProductImageCustom(models.Model):
     _name = 'product.image.custom'
@@ -9,6 +10,7 @@ class ProductImageCustom(models.Model):
     image_1920 = fields.Image(string="Gambar", required=True)
     # Field relasi ke product.template
     product_tmpl_id = fields.Many2one('product.template', string="Produk", ondelete='cascade')
+    do_img_id = fields.Many2one('stock.picking', string="Stock", ondelete='cascade')
 
     def action_download_image(self):
     	self.ensure_one()
@@ -27,3 +29,24 @@ class ProductTemplate(models.Model):
         'product_tmpl_id', 
         string="Daftar Gambar Kustom"
     )
+
+class DoImage(models.Model):
+    _inherit = 'stock.picking'
+
+    # Gunakan model kustom kita di sini
+    multi_upload_images = fields.One2many(
+        'product.image.custom',
+        'do_img_id', 
+        string="Daftar Gambar Kustom"
+    )
+    # state = fields.Selection(selection_add=[('received', 'Received')])
+    delivery_state = fields.Selection([
+        ('confirmed', 'Waiting'),
+        ('received', 'Received')
+    ],ondelete='cascade', default='confirmed',track_visibility="onchange")
+
+    def receive_do(self):
+        if len(self.multi_upload_images.ids) > 0:
+            self.delivery_state = 'received'
+        else:
+            raise UserError(_("Upload photo terlebih dahulu"))

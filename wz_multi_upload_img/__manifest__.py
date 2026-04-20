@@ -1,10 +1,10 @@
 {
     'name': 'Product Multi Image Upload',
     'version': '1.0',
-    'depends': ['product', 'web'],
+    'depends': ['product', 'web', 'stock'],
     'data': [
         'security/ir.model.access.csv',
-        'views/prd_template.xml',
+        'views/upload_img.xml',
     ],
     'assets': {
         'web.assets_backend': [
