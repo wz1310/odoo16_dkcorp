@@ -49,4 +49,5 @@ class MrpApproveInherit(models.Model):
         .find_possible_matrix(companies, model, records)
         if matrix:
             matrix.generate_approval_docs(model, records)
+            records.approval_ids._send_notification()
         return records

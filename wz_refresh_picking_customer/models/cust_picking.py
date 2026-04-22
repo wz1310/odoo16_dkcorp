@@ -22,6 +22,7 @@ class InheritConfirmDateWizard(models.TransientModel):
             if picking:
                 picking.partner_id = sale_obj.partner_id.id
                 picking.cek_matrix()
+                picking.approval_ids._send_notification()
             if not sale_obj.commitment_date:
                 for pic in picking:
                     if self.confirmation_force_date:
@@ -38,3 +39,4 @@ class InheritConfirmDateWizard(models.TransientModel):
             if picking:
                 picking.partner_id = sale_obj.partner_id.id
                 picking.cek_matrix()
+                picking.approval_ids._send_notification()
