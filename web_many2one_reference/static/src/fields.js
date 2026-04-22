@@ -6,7 +6,7 @@ odoo.define('web_many2one_reference.fields', function (require) {
     var FieldMany2One = require('web.relational_fields').FieldMany2One;
     var FieldInteger = basicFields.FieldInteger;
     var concurrency = require('web.concurrency');
-    var ControlPanelView = require('web.ControlPanelView');
+    // var ControlPanelView = require('web.ControlPanelView');
     var core = require('web.core');
     var data = require('web.data');
     var Dialog = require('web.Dialog');

@@ -14,7 +14,7 @@
     ],
     'assets': {
         'web.assets_backend': [
-            'web_many2one_reference/static/srcfields.js',
+            'web_many2one_reference/static/src/fields.js',
         ]
     },
     'data': [

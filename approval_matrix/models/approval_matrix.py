@@ -278,54 +278,93 @@ class ApprovalMatrixRule(models.Model):
         '>=': Operator.ge,
     }
 
+    # @api.model
+    # def _check_is_valid(self, record):
+    #     def value_operator(value, operator):
+    #         if operator not in ['=','!=']:
+    #             return float(value)
+    #         else:
+    #             return str(value)
+
+    #     # same_header = len(self.mapped("matrix_id")) == 1
+    #     # if not same_header:
+    #     #     raise ValidationError(_("Not Allowed checking rules on various header!"))
+        
+    #     rules = []
+    #     for rec in self:
+            
+    #         value_to_compare = getattr(record, rec.field_id.name)
+    #         _logger.info(('checking', value_to_compare))
+    #         if rec.field_id.ttype=='boolean':
+                
+    #             if rec.value in ['True','true','1']:
+    #                 bool_value = True
+    #             else:
+    #                 bool_value = False
+    #             _logger.info("comparing field %s value %s with %s" % (rec.field_id.display_name, bool_value, value_to_compare))
+    #             # fun = Operator.truth
+    #             # rules.append(fun(value_operator(value_to_compare, rec.operator)))
+    #             rules.append(value_to_compare == bool_value)
+
+                
+                
+    #         elif rec.field_id.ttype=='many2one':
+    #             try:
+    #                 fun = rec.OPERATORS.get(rec.operator)
+    #                 rules.append(fun(value_to_compare.id,rec.m2o_value_id))
+    #             except Exception as e:
+    #                 _logger.info("checking rules(%s) for many2one field (%s) raise an exception: %s" % (rec.matrix_id.display_name, rec.field_id.display_name,str(e)))
+    #                 rules.append(False)
+    #         else:
+    #             fun = rec.OPERATORS.get(rec.operator)
+                
+    #             rules.append(fun(value_operator(value_to_compare, rec.operator),value_operator(rec.value, rec.operator)))
+                
+    #     if not all(rules):
+    #         _logger.warning(("Rules warn: ",rules))
+    #     else:
+    #         _logger.info("Rules passed %s" % str((rules)))
+        
+    #     return all(rules)
+
     @api.model
     def _check_is_valid(self, record):
-        def value_operator(value, operator):
-            if operator not in ['=','!=']:
-                return float(value)
-            else:
-                return str(value)
-
-        # same_header = len(self.mapped("matrix_id")) == 1
-        # if not same_header:
-        #     raise ValidationError(_("Not Allowed checking rules on various header!"))
-        
-        rules = []
+        if not self:
+            return False
+        grouped_rules = {}
         for rec in self:
-            
-            value_to_compare = getattr(record, rec.field_id.name)
-            _logger.info(('checking', value_to_compare))
-            if rec.field_id.ttype=='boolean':
-                
-                if rec.value in ['True','true','1']:
-                    bool_value = True
-                else:
-                    bool_value = False
-                _logger.info("comparing field %s value %s with %s" % (rec.field_id.display_name, bool_value, value_to_compare))
-                # fun = Operator.truth
-                # rules.append(fun(value_operator(value_to_compare, rec.operator)))
-                rules.append(value_to_compare == bool_value)
+            if rec.field_id.name not in grouped_rules:
+                grouped_rules[rec.field_id.name] = []
+            grouped_rules[rec.field_id.name].append(rec)
 
-                
-                
-            elif rec.field_id.ttype=='many2one':
-                try:
+        final_rules_evaluation = []
+        for field_name, rules in grouped_rules.items():
+            value_to_compare = getattr(record, field_name)
+            field_type = rules[0].field_id.ttype
+            field_results = []
+            for rec in rules:
+                if field_type == 'many2one':
+                    current_val = value_to_compare.id
+                    target_val = rec.m2o_value_id
+                    field_results.append(current_val == target_val)
+                elif field_type == 'boolean':
+                    bool_target = rec.value in ['True', 'true', '1']
+                    field_results.append(value_to_compare == bool_target)
+                else:
+                    def value_operator(v, op):
+                        return float(v) if op not in ['=', '!='] else str(v)
+
                     fun = rec.OPERATORS.get(rec.operator)
-                    rules.append(fun(value_to_compare.id,rec.m2o_value_id))
-                except Exception as e:
-                    _logger.info("checking rules(%s) for many2one field (%s) raise an exception: %s" % (rec.matrix_id.display_name, rec.field_id.display_name,str(e)))
-                    rules.append(False)
-            else:
-                fun = rec.OPERATORS.get(rec.operator)
-                
-                rules.append(fun(value_operator(value_to_compare, rec.operator),value_operator(rec.value, rec.operator)))
-                
-        if not all(rules):
-            _logger.warning(("Rules warn: ",rules))
-        else:
-            _logger.info("Rules passed %s" % str((rules)))
-        
-        return all(rules)
+                    res = fun(value_operator(value_to_compare, rec.operator),
+                        value_operator(rec.value, rec.operator))
+                    field_results.append(res)
+            final_rules_evaluation.append(any(field_results))
+        if not final_rules_evaluation:
+            return False
+        result = all(final_rules_evaluation)
+        if not result:
+            _logger.warning("Rules failed for record %s" % record.display_name)
+        return result
 
 
 class ApprovalMatrixApprover(models.Model):
