@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_est_sale_mo" model="ir.ui.view">
+        <field name="name">est.sale.mo</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button class="btn-primary" name="action_cek_est" string="Cek Estimasi" type="object"/>
+            </xpath>
+            <xpath expr="//field[@name='order_line']//tree//field[@name='product_uom_qty']" position="after">
+                <field name="est" string="Estimasi Qty" readonly="1" force_save="True"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>
