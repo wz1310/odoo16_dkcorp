@@ -102,6 +102,12 @@ class InheritSmove(models.Model):
             if not x.remark:
                 raise UserError(_('Remark tidak boleh kosong'))
 
+    @api.onchange('quantity_done')
+    def _onchange_quantity_done(self):
+        for x in self:
+            if not x.remark:
+                raise UserError(_('Remark tidak boleh kosong'))
+
 
     @api.onchange('product_id')
     def _onchange_products_id(self):
