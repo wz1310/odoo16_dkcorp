@@ -50,11 +50,15 @@ class MrpApproveInherit(models.Model):
             .with_context(self._context.copy())\
             .find_possible_matrix(company, model, record)
             
+            if matrix:
+                matrix.generate_approval_docs(model, record)
+                record.approval_ids._send_notification()
+            
         # companies = records.company_id
         # matrix = self.env['approval.matrix']\
         # .with_context(self._context.copy())\
         # .find_possible_matrix(companies, model, records)
-        if matrix:
-            matrix.generate_approval_docs(model, records)
-            records.approval_ids._send_notification()
+        # if matrix:
+        #     matrix.generate_approval_docs(model, records)
+        #     records.approval_ids._send_notification()
         return records
