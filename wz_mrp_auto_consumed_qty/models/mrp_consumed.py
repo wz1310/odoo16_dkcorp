@@ -99,13 +99,13 @@ class InheritSmove(models.Model):
     @api.onchange('rill_cost')
     def _onchange_rill_cost(self):
         for x in self:
-            if not x.remark:
+            if x.rill_cost > 0 and not x.remark:
                 raise UserError(_('Remark tidak boleh kosong'))
 
     @api.onchange('quantity_done')
     def _onchange_quantity_done(self):
         for x in self:
-            if not x.remark:
+            if x.quantity_done > 0 and not x.remark:
                 raise UserError(_('Remark tidak boleh kosong'))
 
 
