@@ -125,7 +125,11 @@ class InheritSmove(models.Model):
             if vals['state'] == 'done':
                 for x in self:
                     if x.rill_cost != x.cost and x.remark !=False:
-                        x.product_id.rill_cost = x.rill_cost/x.quantity_done
+                        # x.product_id.rill_cost = x.rill_cost/x.quantity_done
+                        if x.quantity_done:
+                            x.product_id.rill_cost = x.rill_cost / x.quantity_done
+                        else:
+                            x.product_id.rill_cost = 0.0
         return res
 
 
