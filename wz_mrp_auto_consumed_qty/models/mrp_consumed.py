@@ -28,6 +28,12 @@ class MrpProduction(models.Model):
     #         x._onchange_producing()
     #         x.automate = True
 
+    @api.onchange('qty_producing')
+    def _onchangex_products_qty(self):
+        for x in self:
+            if x.state in ('confirmed', 'progress') and not x.line_remark:
+                raise UserError(_('Remark tidak boleh kosong'))
+
     @api.onchange('product_id')
     def _onchanges_products_id(self):
         for x in self.move_raw_ids:
