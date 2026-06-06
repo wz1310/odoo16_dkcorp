@@ -83,6 +83,11 @@ class EstSalesMo(models.Model):
             
             # 3. Total Estimasi Akhir = Sisa Stok Jadi + Potensi Produksi Baru
             line.est = qty_on_hand_jadi + qty_ready_to_produce
+
+            if (qty_on_hand_jadi + qty_ready_to_produce) > line.product_uom_qty:
+                line.est = line.product_uom_qty
+            # else:
+            #     line.est = qty_on_hand_jadi + qty_ready_to_produce
             
             _logger.info(f"Product: {line.product_id.name} | On Hand: {qty_on_hand_jadi} | Deep Ready: {qty_ready_to_produce} | Total Est: {line.est}")
 
