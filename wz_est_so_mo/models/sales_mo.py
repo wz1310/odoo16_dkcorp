@@ -8,6 +8,135 @@ _logger = logging.getLogger(__name__)
 class EstSalesMo(models.Model):
     _inherit = 'sale.order'
 
+
+    def create_int_bom(self):
+        self.ensure_one()
+        bom_report_obj = self.env['report.mrp.report_bom_structure']
+        warehouse = self.warehouse_id or self.env['stock.warehouse'].search([('company_id', '=', self.company_id.id)], limit=1)
+        if not warehouse:
+            raise UserError(_("Gudang (Warehouse) tidak ditemukan untuk dokumen ini."))
+        source_location = warehouse.int_type_id.default_location_src_id or warehouse.lot_stock_id
+        final_components = []
+        location_tf = self.env['ir.config_parameter'].sudo().search([('key','=','internal_bom')]).value
+        for line in self.order_line:
+            if not line.product_id:
+                continue
+            bom = self.env['mrp.bom']._bom_find(line.product_id)[line.product_id]
+            if not bom:
+                continue
+            bom_data = bom_report_obj._get_bom_data(
+                bom=bom,
+                warehouse=warehouse,
+                product=line.product_id,
+                line_qty=line.product_uom_qty
+                )
+            self._collect_final_bom_components(bom_data, final_components)
+        if not final_components:
+            raise UserError(_("Tidak ada komponen BoM layer terakhir yang ditemukan untuk dibuatkan transfer."))
+
+        grouped_lines = {}
+        for comp in final_components:
+            product_id = comp['product_id']
+            qty = comp['qty']
+            uom_id = comp['uom_id']
+            if product_id in grouped_lines:
+                grouped_lines[product_id]['qty'] += qty
+            else:
+                grouped_lines[product_id] = {'qty': qty, 'uom_id': uom_id}
+        picking_vals = {
+            'picking_type_id': warehouse.int_type_id.id,
+            'location_id': source_location.id,
+            'location_dest_id': int(location_tf) if location_tf else source_location.id,
+            'origin': self.name,
+            'sale_id': self.id,
+            }
+        new_picking = self.env['stock.picking'].create(picking_vals)
+        move_lines = []
+        for prod_id, data in grouped_lines.items():
+            # print("UOMMM",data['uom_id'])
+            # print("QTY",data['qty'])
+            move_lines.append((0, 0, {
+                'name': self.name,
+                'product_id': prod_id,
+                'product_uom_qty': data['qty'],
+                'product_uom': data['uom_id'],
+                'location_id': source_location.id,
+                'location_dest_id': int(location_tf) if location_tf else source_location.id,
+                }))
+        new_picking.write({'move_ids_without_package': move_lines})
+        return {
+            'name': _('Internal Transfer Generated'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'stock.picking',
+            'view_mode': 'form',
+            'res_id': new_picking.id,
+            'target': 'current',
+            }
+
+    def _collect_final_bom_components(self, bom_line_data, final_components):
+        components = bom_line_data.get('components', [])
+        for comp in components:
+            if comp.get('components'):
+                self._collect_final_bom_components(comp, final_components)
+            else:
+                product_id = comp.get('product_id')
+                if not product_id:
+                    continue
+                uom_id = comp.get('uom_id') or comp.get('product_uom_id')
+                if not uom_id:
+                    product = self.env['product.product'].browse(product_id)
+                    uom_id = product.uom_id.id
+                final_components.append({
+                    'product_id': product_id,
+                    'qty': comp.get('base_bom_line_qty', 0.0),
+                    'uom_id': uom_id,
+                    })
+
+
+    def _print_bom_components_recursive(self, bom_line_data, level=1):
+        components = bom_line_data.get('components', [])
+
+        for comp in components:
+            indentation = "    " * level
+            comp_name = comp.get('name', 'Unknown Product')
+            comp_type = comp.get('type', 'component')
+            bom_qty = comp.get('base_bom_line_qty', 0.0)
+            uom_name = comp.get('uom_name', '')
+
+            if comp.get('components'):
+                self._print_bom_components_recursive(comp, level + 1)
+            else:
+                indentation = "    " * level
+                print(f"{indentation}- [{comp_type.upper()}] {comp_name} (Butuh: {bom_qty} {uom_name})")
+                # _logger.info(f"{indentation}- [{comp_type.upper()}] {comp_name} (Butuh: {bom_qty} {uom_name})")
+
+            # if comp.get('components'):
+            #     self._print_bom_components_recursive(comp, level + 1)
+
+    def cek_last_bom(self):
+        bom_report_obj = self.env['report.mrp.report_bom_structure']
+        print("\n=== START CEK LIST BOM YANG DIBUTUHKAN ===")
+        for line in self.order_line:
+            if not line.product_id:
+                continue
+
+            bom = self.env['mrp.bom']._bom_find(line.product_id)[line.product_id]
+
+            print(f"\nProduk Utama Order Line: {line.product_id.name}")
+            # _logger.info(f"Produk Utama Order Line: {line.product_id.name}")
+            if not bom:
+                print("    -> Produk ini tidak memiliki Bill of Materials (BOM).")
+                continue
+            warehouse = self.warehouse_id or self.env['stock.warehouse'].search([('company_id', '=', self.company_id.id)], limit=1)
+            bom_data = bom_report_obj._get_bom_data(
+                bom=bom,
+                warehouse=warehouse,
+                product=line.product_id,
+                line_qty=1.0)
+            self._print_bom_components_recursive(bom_data, level=1)
+        print("=== END CEK LIST BOM YANG DIBUTUHKAN ===\n")
+
+
     def _get_component_producible_qty(self, bom_line_data):
         """
         Fungsi rekursif murni untuk mencari kapasitas produksi maksimum komponen.

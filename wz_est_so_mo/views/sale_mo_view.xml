@@ -7,6 +7,8 @@
         <field name="arch" type="xml">
             <xpath expr="//header" position="inside">
                 <button class="btn-primary" name="action_cek_est" string="Cek Estimasi" type="object"/>
+                <button class="btn-primary" name="cek_last_bom" string="Cek BOM" type="object"/>
+                <button class="btn-primary" name="create_int_bom" string="Create Internal BOM" type="object"/>
             </xpath>
             <xpath expr="//field[@name='order_line']//tree//field[@name='product_uom_qty']" position="after">
                 <field name="est" string="Estimasi Qty" readonly="1" force_save="True"/>
