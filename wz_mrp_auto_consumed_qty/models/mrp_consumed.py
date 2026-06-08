@@ -118,12 +118,14 @@ class InheritSmove(models.Model):
     @api.onchange('product_id')
     def _onchange_products_id(self):
         for x in self:
-            x.cost = x.product_id.sudo().standard_price * x.quantity_done
+            if x.picking_type_id.code == 'mrp_operation':
+                x.cost = x.product_id.sudo().standard_price * x.quantity_done
 
     @api.onchange('quantity_done')
     def _onchanges_quantity_done(self):
         for x in self:
-            x.cost = x.product_id.sudo().standard_price * x.quantity_done
+            if x.picking_type_id.code == 'mrp_operation':
+                x.cost = x.product_id.sudo().standard_price * x.quantity_done
 
     def write(self, vals):
         res = super(InheritSmove, self).write(vals)
