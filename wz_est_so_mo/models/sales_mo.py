@@ -28,9 +28,10 @@ class EstSalesMo(models.Model):
                 bom=bom,
                 warehouse=warehouse,
                 product=line.product_id,
-                line_qty=line.product_uom_qty
+                # line_qty=line.product_uom_qty
+                line_qty=1.0 # Set ke 1.0 agar kita mendapatkan unit murni per 1 unit produk jadi
                 )
-            self._collect_final_bom_components(bom_data, final_components)
+            self._collect_final_bom_components(bom_data, final_components,line.product_uom_qty)
         if not final_components:
             raise UserError(_("Tidak ada komponen BoM layer terakhir yang ditemukan untuk dibuatkan transfer."))
 
@@ -73,11 +74,11 @@ class EstSalesMo(models.Model):
             'target': 'current',
             }
 
-    def _collect_final_bom_components(self, bom_line_data, final_components):
+    def _collect_final_bom_components(self, bom_line_data, final_components,so_qty=1.0):
         components = bom_line_data.get('components', [])
         for comp in components:
             if comp.get('components'):
-                self._collect_final_bom_components(comp, final_components)
+                self._collect_final_bom_components(comp, final_components,so_qty)
             else:
                 product_id = comp.get('product_id')
                 if not product_id:
@@ -86,9 +87,17 @@ class EstSalesMo(models.Model):
                 if not uom_id:
                     product = self.env['product.product'].browse(product_id)
                     uom_id = product.uom_id.id
+                
+                # base_qty = comp.get('base_bom_line_qty', 0.0)
+                # total_needed_qty = base_qty * so_qty
+                # --- PERBAIKAN: MENGAMBIL KEY QUANTITY MURNI OVERVIEW ---
+                # Key 'quantity' di level komponen mencerminkan angka yang tampil di layar BoM Overview
+                bom_qty = comp.get('quantity', 0.0)
+                total_needed_qty = bom_qty * so_qty
+                
                 final_components.append({
                     'product_id': product_id,
-                    'qty': comp.get('base_bom_line_qty', 0.0),
+                    'qty': total_needed_qty,
                     'uom_id': uom_id,
                     })
 
