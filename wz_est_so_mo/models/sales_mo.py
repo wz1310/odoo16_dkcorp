@@ -224,7 +224,7 @@ class EstSalesMo(models.Model):
 
             if (qty_on_hand_jadi + qty_ready_to_produce) > line.product_uom_qty:
                 line.est = line.product_uom_qty
-            if (qty_on_hand_jadi + qty_ready_to_produce) < line.product_uom_qty:
+            if (qty_on_hand_jadi + qty_ready_to_produce) < 0:
                 line.est = 0
             
             _logger.info(f"Product: {line.product_id.name} | On Hand: {qty_on_hand_jadi} | Deep Ready: {qty_ready_to_produce} | Total Est: {line.est}")
