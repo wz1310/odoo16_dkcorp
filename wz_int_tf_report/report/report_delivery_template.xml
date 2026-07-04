@@ -1,0 +1,205 @@
+<odoo>
+    <data>
+        <template id="report_delivery_internal_document">
+		    <head>
+                <style>
+                    .vl {
+                      border-left: 6px solid black;
+                      height: 100px;
+                    }
+                    body{
+                        font-family: 'tahoma';
+                        src: url('/wz_int_tf_report/static/src/font/tahoma.ttf') format('truetype');
+                    }
+                    .border-top-bottom th{
+                        border-top: 1px dashed black;
+                        border-bottom: 1px dashed black;
+                    }
+
+                    .border-bottom{
+                        border-bottom: 1px dashed black;
+                    }
+
+                    .small-font{
+                        font-size:11pt;
+                    }
+
+                     .smaller-font{
+                        font-size:10pt !important;
+                    }
+
+                    thead {
+                        display: table-header-group;
+                        margin-top:20px;
+                    }
+
+                    .header-cell th{
+                        padding:5px;
+                    }
+
+                    .child-cell td{
+                        padding-top:2px;
+                        padding-bottom:2px;
+                        padding-left:4px;
+                        padding-right:4px;
+                    }
+
+                    h3{
+                        line-height: 15px;
+                    }
+
+                    .no_page_break{
+                        page-break-inside: avoid;
+                    }
+                </style>
+            </head>
+            <body >
+
+                <table style="width:100%;" cellspacing="0" cellpadding="0" class="border-bottom small-font">
+                    <thead>
+                        <tr>
+                            <td colspan="5">
+                                <table style="width:100%;" class="small-font">
+                                    <tr>
+                                        <td style="width:70%;" >
+                                            <h2><t t-esc="o.company_id.name"/></h2>
+                                        </td>
+                                        <td align="right" colspan="3">
+                                            <h2>INTERNAL TRANSFER</h2>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width:70%;">
+                                            Source Location: <t t-esc="o.location_id.display_name"/>
+                                        </td>
+                                        <td align="right">
+                                            No Internal Transfer
+                                        </td>
+                                        <td align="right" style="width:5px;">
+                                            :
+                                        </td>
+                                        <td align="right">
+                                            <t t-esc="o.name"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width:70%;">
+                                            Destination Location: <t t-esc="o.location_dest_id.display_name"/>
+                                        </td>
+                                        <td align="right">
+                                            Tgl Internal Transfer
+                                        </td>
+                                        <td align="right" style="width:5px;">
+                                            :
+                                        </td>
+                                        <td align="right">
+                                            <t t-esc="o.scheduled_date.strftime('%d %B %Y')"/>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width:70%;">
+                                            <t t-esc="o.partner_id.street"/>
+                                        </td>
+                                        <td align="right">
+                                            No. Order
+                                        </td>
+                                        <td align="right" style="width:5px;">
+                                            :
+                                        </td>
+                                        <td align="right">
+                                            <t t-esc="o.origin"/>
+                                        </td>
+                                    </tr>
+                                     <tr>
+                                        <td style="width:70%;">
+
+                                        </td>
+                                        <td align="right">
+                                            No. PO
+                                        </td>
+                                        <td align="right" style="width:5px;">
+                                            :
+                                        </td>
+                                        <td align="right">
+                                            <t t-esc="o.po_number"/>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </thead>
+                    <tr class="border-top-bottom header-cell">
+                        <th align="center" style="width:10px;">No</th>
+                        <th align="center" style="width:300px;">Nama Barang</th>
+                        <th align="center">Jumlah</th>
+                        <th align="center" style="width:90px;">Satuan</th>
+                        <th align="center">Keterangan</th>
+                    </tr>
+                    <t t-set="qty" t-value="0" />
+                    <t t-set="i" t-value="1" />
+                    <t t-foreach="o.move_ids" t-as="move_id">
+                        <tr class="child-cell">
+                            <td align="right" >
+                                    <span t-esc="i"/>
+                               <t t-set="i" t-value="i+1"/>
+                                <t t-set="qty" t-value="qty+move_id.product_uom_qty"/>
+                            </td><td><t t-esc="move_id.product_id.name"/></td><td align="center"><t t-esc="'{:,.2f}'.format(move_id.product_uom_qty)"/></td><td align="center"><t t-esc="move_id.product_uom.name"/></td><td><t t-esc="move_id.move_remark"/></td>
+                        </tr>
+                    </t>
+                </table>
+                <br/>
+                <t t-set="i" t-value="i-1"/>
+                <div class="no_page_break">
+                 <table style="width:100%;" class="small-font">
+                     <tr>
+                         <td style="width:20px"></td>
+                         <td align="left">Item : <t t-esc="i"/> </td>
+                         <td align="left">Total Quantity : <t t-esc="qty"/></td>
+                     </tr>
+                 </table>
+                <br/>
+                <table class="small-font">
+                    <tr>
+                        <td colspan="3">Mengetahui,</td>
+                    </tr>
+                    <tr>
+                        <td style="width:150px;">Pengirim :</td>
+                        <td style="width:150px;">Driver :</td>
+                        <td style="width:150px;">Penerima :</td>
+                    </tr>
+                </table>
+                <br/><br/>
+                <table class="small-font">
+                    <tr>
+                        <!-- <td style="width:150px;" align="right">Dibuat: <t t-esc="o.user_id.name"/></td> -->
+                        <td style="width:100%;" align="right">
+                            <span class="small-font">
+                                Dibuat: 
+                                <t t-if="o.user_id">
+                                <t t-esc="o.user_id.name"/>
+                                </t>
+                                <t t-else="">
+                                <t t-esc="o.write_uid.name"/>
+                                </t> 
+                                | 
+                                <t t-set="now" t-value="datetime.datetime.now() + datetime.timedelta(hours=7)"/>
+                                <t t-esc="now.strftime('%d/%m/%Y %H:%M:%S')"/>
+                            </span>
+                    </td>
+                    </tr>
+                </table>
+                </div>
+            </body>
+        </template>
+
+        <template id="report_delivery_internal">
+            <t t-call="web.html_container">
+                <t t-set="data_report_margin_top" t-value="1"/>
+                <t t-foreach="docs" t-as="o">
+                    <t t-call="wz_int_tf_report.report_delivery_internal_document"/>
+                </t>
+            </t>
+        </template>
+
+    </data>
+</odoo>
