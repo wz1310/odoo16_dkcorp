@@ -1,0 +1,12 @@
+<odoo>
+    <data>
+        <report
+            id="action_report_delivery_internal_xlsx"
+            model="stock.picking"
+            string="Internal Transfer (Excel)"
+            report_type="xlsx"
+            name="wz_int_tf_report.report_delivery_internal_xlsx"
+            file="Internal_Transfer"
+            attachment_use="False"/>
+    </data>
+</odoo>
