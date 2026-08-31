@@ -8,6 +8,7 @@
             <xpath expr="//button[@name='action_cancel']" position="after">
                 <button name="action_print_internal_picking_report" string="Print Internal Report" type="object" attrs="{'invisible': [('picking_type_code', '!=', 'internal')]}"/>
             </xpath>
+            <!-- <xpath></xpath> -->
     </field>
     </record>
 </odoo>
