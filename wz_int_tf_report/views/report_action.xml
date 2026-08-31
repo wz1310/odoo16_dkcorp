@@ -1,5 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
         <report
             id="action_report_delivery_internal_xlsx"
             model="stock.picking"
@@ -8,5 +8,4 @@
             name="wz_int_tf_report.report_delivery_internal_xlsx"
             file="Internal_Transfer"
             attachment_use="False"/>
-    </data>
 </odoo>
