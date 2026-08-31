@@ -12,7 +12,7 @@
     'data': [
         'report/paper_format.xml',
         'report/ir_actions_report.xml',
-        # 'views/report_action.xml',
+        'views/report_action.xml',
         'views/stock_picking.xml',
         'report/report_delivery_template.xml'
     ],
