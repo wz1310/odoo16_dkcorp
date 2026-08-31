@@ -8,5 +8,5 @@
             name="wz_int_tf_report.report_delivery_internal_xlsx"
             file="Internal_Transfer"
             attachment_use="False"/>
-    </data>
+    <!-- </data>///////////////////////// -->
 </odoo>
