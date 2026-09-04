@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- 1. Pastikan Form View berada paling atas -->
+    <record id="view_financial_report_coa_wizard_form" model="ir.ui.view">
+        <field name="name">financial.report.coa.wizard.form</field>
+        <field name="model">financial.report.coa.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Financial Report by COA">
+                <group>
+                    <group>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                    </group>
+                    <group>
+                        <field name="target_move" widget="radio"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="generate_excel_report" string="Download Excel Report" type="object" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- 2. Action merujuk ke view_id secara eksplisit -->
+    <record id="action_financial_report_coa_wizard" model="ir.actions.act_window">
+        <field name="name">Financial Report by COA</field>
+        <field name="res_model">financial.report.coa.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_financial_report_coa_wizard_form"/>
+        <field name="target">new</field>
+    </record>
+
+    <!-- 3. Menuitem dipasang paling bawah -->
+    <menuitem id="menu_financial_report_by_coa"
+              name="Financial Report by COA"
+              sequence="20"
+              parent="accounting_pdf_reports.menu_finance_legal_statement"
+              action="action_financial_report_coa_wizard"/>
+
+</odoo>
