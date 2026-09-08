@@ -3,12 +3,10 @@
 
 from odoo import models, fields, exceptions, api, _
 from datetime import datetime
-from odoo.exceptions import UserError
-from odoo.exceptions import Warning
+from odoo.exceptions import UserError, Warning
 
 
 class WzAccount(models.Model):
-
     _inherit = 'account.account'
 
     ycogs = fields.Boolean(string="YCOGS", default=False)
@@ -24,6 +22,7 @@ class WzAccount(models.Model):
     pnlytd = fields.Boolean(string="PNL YTD", default=False)
     bsytd = fields.Boolean(string="BS YTD", default=False)
 
+
 class StockMove(models.Model):
     _inherit = "stock.move"
 
@@ -31,24 +30,52 @@ class StockMove(models.Model):
         domain="[('type', 'in', ['product', 'consu', 'service']), '|', ('company_id', '=', False), ('company_id', '=', company_id)]"
     )
 
-    def _is_inventory_valuation_enabled(self):
-        # Memaksa Odoo menganggap produk service pada MO butuh jurnal valuation
+    def _is_valued_type_case(self):
+        """
+        Mengizinkan pembuatan Stock Valuation Layer / Jurnal untuk komponen 'service' di MO.
+        """
+        res = super(StockMove, self)._is_valued_type_case()
+        if self.raw_material_production_id and self.product_id.type == 'service':
+            return True
+        return res
+
+    def _get_src_account(self, account_data):
+        """
+        DITAMBAHKAN: Fallback akun kredit ke akun Expense / COGS milik produk servis,
+        karena Product Category untuk service biasanya tidak memiliki Stock Valuation Account.
+        """
+        res = super(StockMove, self)._get_src_account(account_data)
+        if self.product_id.type == 'service':
+            expense_account = (
+                self.product_id.property_account_expense_id 
+                or self.product_id.categ_id.property_account_expense_categ_id
+            )
+            if expense_account:
+                return expense_account.id
+        return res
+
+    def _get_price_unit(self):
+        """
+        DITAMBAHKAN: Memastikan unit price untuk pergerakan produk service
+        mengambil nilai Cost (standard_price) dari master produk.
+        """
         self.ensure_one()
         if self.product_id.type == 'service' and self.raw_material_production_id:
-            return self.product_id.valuation == 'real_time'
-        return super()._is_inventory_valuation_enabled()
+            return self.product_id.standard_price
+        return super(StockMove, self)._get_price_unit()
 
-    def _get_accounting_data_for_valuation(self):
-        # Memastikan akun debit/kredit diambil dari Product Category meski tipe produk Service
-        journal_id, acc_src, acc_dest, acc_valuation = super()._get_accounting_data_for_valuation()
-        if self.product_id.type == 'service' and self.raw_material_production_id:
-            # Mengambil akun Expense/Interim sebagai akun sumber (Kredit)
-            accounts_data = self.product_id.product_tmpl_id.get_product_accounts()
-            acc_src = accounts_data.get('expense') or accounts_data.get('stock_input')
-        return journal_id, acc_src, acc_dest, acc_valuation
 
 class MrpProduction(models.Model):
     _inherit = 'mrp.production'
+
+    def _get_move_raw_values(self, product_id, qty, uom_id, operation_id=False, bom_line=False):
+        """
+        DITAMBAHKAN: Mengisikan nilai price_unit secara eksplisit saat dictionary move dibuat.
+        """
+        res = super(MrpProduction, self)._get_move_raw_values(product_id, qty, uom_id, operation_id, bom_line)
+        if product_id.type == 'service':
+            res['price_unit'] = product_id.standard_price
+        return res
 
     def _get_moves_raw_values(self):
         moves = []
