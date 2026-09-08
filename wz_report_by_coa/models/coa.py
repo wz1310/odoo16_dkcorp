@@ -70,24 +70,30 @@ class StockMove(models.Model):
         return svl_moves
 
     def _account_entry_move(self, qty, description, svl_id, cost):
-        if self.product_id.type == 'service' and self.raw_material_production_id:
-            am_vals = []
-            if self._should_exclude_for_valuation():
-                return am_vals
-
-            company_from = self._is_out() and self.mapped('move_line_ids.location_id.company_id') or False
-            company_to = self._is_in() and self.mapped('move_line_ids.location_dest_id.company_id') or False
-
-            journal_id, acc_src, acc_dest, acc_valuation = self._get_accounting_data_for_valuation()
-
-            if self._is_out():
-                cost = -1 * cost
-                am_vals.append(self.with_company(company_from)._prepare_account_move_vals(
-                    acc_valuation, acc_dest, journal_id, qty, description, svl_id, cost
-                ))
+    if self.product_id.type == 'service' and self.raw_material_production_id:
+        am_vals = []
+        if self._should_exclude_for_valuation():
             return am_vals
 
-        return super(StockMove, self)._account_entry_move(qty, description, svl_id, cost)
+        company_from = self._is_out() and self.mapped('move_line_ids.location_id.company_id') or False
+        journal_id, acc_src, acc_dest, acc_valuation = self._get_accounting_data_for_valuation()
+
+        # Ambil akun expense (kredit) menggunakan fungsi _get_src_account yang sudah dibuat
+        credit_account_id = self._get_src_account({
+            'stock_input': self.env['account.account'].browse(acc_src),
+            'stock_output': self.env['account.account'].browse(acc_dest),
+            'stock_valuation': self.env['account.account'].browse(acc_valuation),
+        })
+
+        if self._is_out():
+            cost = -1 * cost
+            # Gunakan credit_account_id (Expense) pada posisi Kredit, menggantikan acc_dest
+            am_vals.append(self.with_company(company_from)._prepare_account_move_vals(
+                acc_valuation, credit_account_id, journal_id, qty, description, svl_id, cost
+            ))
+        return am_vals
+
+    return super(StockMove, self)._account_entry_move(qty, description, svl_id, cost)
 
 
 class MrpProduction(models.Model):
