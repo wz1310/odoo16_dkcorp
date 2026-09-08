@@ -86,10 +86,7 @@ class StockMove(models.Model):
 			})
 
 			if self._is_out():
-				cost = -1 * cost
-				# POSISI DIPERBAIKI:
-				# Parameter 1 (DEBIT)  : acc_valuation atau acc_dest (Interim Stock/WIP)
-				# Parameter 2 (KREDIT) : expense_account_id (Biaya Gaji)
+				# HAPUS: cost = -1 * cost (Jangan dikali -1 agar posisi Debit/Kredit tidak terbalik otomatis)
 				am_vals.append(self.with_company(company_from)._prepare_account_move_vals(
 					acc_dest, expense_account_id, journal_id, qty, description, svl_id, cost
 				))
