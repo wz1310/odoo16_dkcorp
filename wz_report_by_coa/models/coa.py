@@ -23,3 +23,10 @@ class WzAccount(models.Model):
     cogsytd = fields.Boolean(string="COGS YTD", default=False)
     pnlytd = fields.Boolean(string="PNL YTD", default=False)
     bsytd = fields.Boolean(string="BS YTD", default=False)
+
+class StockMove(models.Model):
+    _inherit = "stock.move"
+
+    product_id = fields.Many2one(
+        domain="[('type', 'in', ['product', 'consu', 'service']), '|', ('company_id', '=', False), ('company_id', '=', company_id)]"
+    )
