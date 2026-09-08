@@ -27,7 +27,8 @@ class StockMove(models.Model):
 
 	def _get_src_account(self, account_data):
 		res = super(StockMove, self)._get_src_account(account_data)
-		if self.product_id.type == 'service':
+		# TAMBAHKAN 'and self.raw_material_production_id'
+		if self.product_id.type == 'service' and self.raw_material_production_id:
 			expense_account = (
 				self.product_id.property_account_expense_id 
 				or self.product_id.categ_id.property_account_expense_categ_id
