@@ -64,6 +64,38 @@ class StockMove(models.Model):
             return self.product_id.standard_price
         return super(StockMove, self)._get_price_unit()
 
+    def _create_out_svl(self, forced_quantity=None):
+        """
+        Secara default Odoo melewati pembuat SVL jika produk bertipe 'service'.
+        Kita override agar tetap dibuatkan SVL khusus jika move ini bagian dari MO.
+        """
+        svl_moves = super(StockMove, self)._create_out_svl(forced_quantity=forced_quantity)
+        
+        # Cari move bertipe service di MO yang belum dibuatkan SVL
+        service_moves = self.filtered(
+            lambda m: m.raw_material_production_id 
+            and m.product_id.type == 'service' 
+            and not m.stock_valuation_layer_ids
+        )
+        
+        for move in service_moves:
+            quantity = forced_quantity or move.product_uom_qty
+            unit_cost = move.product_id.standard_price
+            val_created = self.env['stock.valuation.layer'].create({
+                'company_id': move.company_id.id,
+                'product_id': move.product_id.id,
+                'quantity': -quantity,
+                'unit_cost': unit_cost,
+                'value': -quantity * unit_cost,
+                'remaining_qty': 0,
+                'stock_move_id': move.id,
+                'description': move.reference or move.origin,
+            })
+            # Buat entri jurnal akuntansi dari SVL yang baru dibuat
+            val_created._validate_accounting_entries()
+            
+        return svl_moves
+
 
 class MrpProduction(models.Model):
     _inherit = 'mrp.production'
