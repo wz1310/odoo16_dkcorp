@@ -1,10 +1,5 @@
 # -*- coding: utf-8 -*-
-# Part of BrowseInfo. See LICENSE file for full copyright and licensing details.
-
-from odoo import models, fields, exceptions, api, _
-from datetime import datetime
-from odoo.exceptions import UserError, Warning
-
+from odoo import models, fields, api, _
 
 class WzAccount(models.Model):
     _inherit = 'account.account'
@@ -30,20 +25,7 @@ class StockMove(models.Model):
         domain="[('type', 'in', ['product', 'consu', 'service']), '|', ('company_id', '=', False), ('company_id', '=', company_id)]"
     )
 
-    def _is_valued_type_case(self):
-        """
-        Mengizinkan pembuatan Stock Valuation Layer / Jurnal untuk komponen 'service' di MO.
-        """
-        res = super(StockMove, self)._is_valued_type_case()
-        if self.raw_material_production_id and self.product_id.type == 'service':
-            return True
-        return res
-
     def _get_src_account(self, account_data):
-        """
-        DITAMBAHKAN: Fallback akun kredit ke akun Expense / COGS milik produk servis,
-        karena Product Category untuk service biasanya tidak memiliki Stock Valuation Account.
-        """
         res = super(StockMove, self)._get_src_account(account_data)
         if self.product_id.type == 'service':
             expense_account = (
@@ -55,23 +37,14 @@ class StockMove(models.Model):
         return res
 
     def _get_price_unit(self):
-        """
-        DITAMBAHKAN: Memastikan unit price untuk pergerakan produk service
-        mengambil nilai Cost (standard_price) dari master produk.
-        """
         self.ensure_one()
         if self.product_id.type == 'service' and self.raw_material_production_id:
             return self.product_id.standard_price
         return super(StockMove, self)._get_price_unit()
 
     def _create_out_svl(self, forced_quantity=None):
-        """
-        Secara default Odoo melewati pembuat SVL jika produk bertipe 'service'.
-        Kita override agar tetap dibuatkan SVL khusus jika move ini bagian dari MO.
-        """
         svl_moves = super(StockMove, self)._create_out_svl(forced_quantity=forced_quantity)
         
-        # Cari move bertipe service di MO yang belum dibuatkan SVL
         service_moves = self.filtered(
             lambda m: m.raw_material_production_id 
             and m.product_id.type == 'service' 
@@ -81,7 +54,7 @@ class StockMove(models.Model):
         for move in service_moves:
             quantity = forced_quantity or move.product_uom_qty
             unit_cost = move.product_id.standard_price
-            val_created = self.env['stock.valuation.layer'].create({
+            self.env['stock.valuation.layer'].create({
                 'company_id': move.company_id.id,
                 'product_id': move.product_id.id,
                 'quantity': -quantity,
@@ -91,18 +64,13 @@ class StockMove(models.Model):
                 'stock_move_id': move.id,
                 'description': move.reference or move.origin,
             })
-            # Buat entri jurnal akuntansi dari SVL yang baru dibuat
-            val_created._validate_accounting_entries()
+            # Catatan: Pemanggilan _validate_accounting_entries() DIHAPUS dari sini
+            # karena Odoo akan memanggilnya secara otomatis di alur _action_done()
             
         return svl_moves
 
     def _account_entry_move(self, qty, description, svl_id, cost):
-        """
-        Override agar produk 'service' khusus dari MO tetap membuat jurnal valuation.
-        """
-        # Jika produk service dan berasal dari MO, bypass pengecekan type != 'product'
         if self.product_id.type == 'service' and self.raw_material_production_id:
-            # Panggil logika pembuatan am_vals tanpa terblokir if self.product_id.type != 'product'
             am_vals = []
             if self._should_exclude_for_valuation():
                 return am_vals
@@ -125,15 +93,6 @@ class StockMove(models.Model):
 class MrpProduction(models.Model):
     _inherit = 'mrp.production'
 
-    def _get_move_raw_values(self, product_id, qty, uom_id, operation_id=False, bom_line=False):
-        """
-        DITAMBAHKAN: Mengisikan nilai price_unit secara eksplisit saat dictionary move dibuat.
-        """
-        res = super(MrpProduction, self)._get_move_raw_values(product_id, qty, uom_id, operation_id, bom_line)
-        if product_id.type == 'service':
-            res['price_unit'] = product_id.standard_price
-        return res
-
     def _get_moves_raw_values(self):
         moves = []
         for production in self:
@@ -150,7 +109,6 @@ class MrpProduction(models.Model):
             )
             
             for bom_line, line_data in lines:
-                # KUSTOMISASI: Mengizinkan tipe 'service' selain 'product' dan 'consu'
                 if bom_line.child_bom_id and bom_line.child_bom_id.type == 'phantom' or \
                         bom_line.product_id.type not in ['product', 'consu', 'service']:
                     continue
