@@ -95,7 +95,7 @@ class StockMove(models.Model):
 				))
 			return am_vals
 
-	return super(StockMove, self)._account_entry_move(qty, description, svl_id, cost)
+		return super(StockMove, self)._account_entry_move(qty, description, svl_id, cost)
 
 
 class MrpProduction(models.Model):
