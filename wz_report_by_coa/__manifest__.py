@@ -4,11 +4,12 @@
     'version': '0.0.1',
     'author': 'Wiza',
     'description': """Inherit COA """,
-    'depends': ['account'],
+    'depends': ['account','sale',],
     'data': [
         'security/ir.model.access.csv',
         'wizard/financial_report_wizard_view.xml',
-        'views/coa_view.xml'
+        'views/mrp_worker_views.xml',
+        'views/coa_view.xml',
     ],
     'installable': True,
     'auto_install': False,
