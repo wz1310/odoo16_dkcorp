@@ -25,9 +25,9 @@
             <xpath expr="//button[@name='receive_do']" position="attributes">
                 <attribute name="attrs">{'invisible': ['|','|',('delivery_state', 'in', ['received']),('state', 'not in', ['done']),('user_so', '=', False)]}</attribute>
             </xpath>
-            <xpath expr="//field[@name='multi_upload_images']" position="attributes">
+            <!-- <xpath expr="//field[@name='multi_upload_images']" position="attributes">
                 <attribute name="attrs">{'readonly': [('delivery_state', 'in', ['received'])]}</attribute>
-            </xpath>
+            </xpath> -->
 
         </field>
     </record>
