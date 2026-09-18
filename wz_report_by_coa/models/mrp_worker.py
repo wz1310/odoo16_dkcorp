@@ -93,7 +93,7 @@ class MrpProduction(models.Model):
         for mo in self:
             total_wage = sum(mo.worker_line_ids.mapped('wage'))
             print("total_wage", total_wage)
-            service_moves = mo.move_raw_ids.filtered(lambda m: m.product_id.type == 'service')
+            service_moves = mo.move_raw_ids.filtered(lambda m: m.product_id.type == 'service').product_id
             
             if service_moves:
                 # Memaksa update price_unit pada stock move
