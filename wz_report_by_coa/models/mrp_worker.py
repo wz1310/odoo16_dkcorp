@@ -85,5 +85,5 @@ class MrpProduction(models.Model):
             )
         print("PRRRRRRRRRRRR", service_moves.product_id.name)
         for move in service_moves:
-            move.product_id.sudo().write({'standard_price': sum([x.wage for x in self.worker_line_ids])})
+            move.product_id.standard_price = sum([x.wage for x in self.worker_line_ids])
         print("aaaaaaaaaaaaaaaa",sum([x.wage for x in self.worker_line_ids]))
