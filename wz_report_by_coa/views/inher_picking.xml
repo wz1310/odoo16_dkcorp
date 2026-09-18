@@ -31,5 +31,14 @@
 
         </field>
     </record>
+
+
+     
+    <!-- <record id="group_driver" model="res.groups">
+        <field name="name">Driver</field>
+    </record> -->
+     <record id="group_driver" model="res.groups">
+        <field name="name">Driver</field>
+    </record>
     
 </odoo>

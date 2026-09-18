@@ -22,5 +22,5 @@ class SPicking(models.Model):
 	def _cek_driver(self):
 		for x in self:
 			x.real_driver = False
-			if x.env.user.id == x.driver.id:
+			if x.env.user.id == x.driver.id or x.env.user.id == x.sale_id.create_uid.id:
 				x.real_driver = True

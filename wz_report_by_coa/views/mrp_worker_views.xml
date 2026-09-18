@@ -8,13 +8,13 @@
         <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='company_id']" position="after">
-                <field name="sale_order_id" options="{'no_create': True}"/>
+                <field name="sale_order_id" options="{'no_create': True}" domain="[('state', 'in', ['sale', 'done'])]" attrs="{'readonly': [('state', '=', 'done')]}"/>
                 <field name="max_worker_qty" readonly="1"/>
             </xpath>
 
             <xpath expr="//notebook" position="inside">
                 <page string="Daftar Pekerja" name="worker_tab">
-                    <field name="worker_line_ids">
+                    <field name="worker_line_ids" attrs="{'readonly': [('state', '=', 'done')]}">
                         <tree editable="bottom">
                             <field name="worker_id"/>
                             <field name="wage"/>
