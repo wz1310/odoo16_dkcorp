@@ -23,8 +23,8 @@
         <field name="arch" type="xml">
             
             <!-- Mengubah atribut 'attrs' pada widget web_ribbon yang sudah ada -->
-            <xpath expr="//widget[@name='web_ribbon']" position="attributes">
-                <attribute name="attrs">{'invisible': ['|', ('delivery_state', '!=', 'received'), ('user_so', '=', False)]}</attribute>
+            <xpath expr="//button[@name='receive_do']" position="attributes">
+                <attribute name="attrs">{'invisible': ['|','|',('delivery_state', 'in', ['received']),('state', 'not in', ['done']),('user_so', '=', False)]}</attribute>
             </xpath>
 
         </field>
