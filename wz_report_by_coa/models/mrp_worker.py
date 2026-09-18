@@ -86,11 +86,14 @@ class MrpProduction(models.Model):
     #     for move in service_moves:
     #         move.product_id.standard_price = sum([x.wage for x in self.worker_line_ids])
 
-    @api.depends('worker_line_ids.wage', 'move_raw_ids')
-    def _compute_worker_cost(self):
-        for mo in self:
-            total_wage = sum(mo.worker_line_ids.mapped('wage'))
-            service_moves = mo.move_raw_ids.filtered(lambda m: m.product_id.type == 'service')
-            for move in service_moves:
-                # Update unit price pada move line, bukan di master produknya
-                move.price_unit = total_wage
+
+    def write(self, vals):
+        res = super(MrpProduction, self).write(vals)
+        if 'worker_line_ids' in vals:
+            for mo in self:
+                total_wage = sum(mo.worker_line_ids.mapped('wage'))
+                service_moves = mo.move_raw_ids.filtered(lambda m: m.product_id.type == 'service')
+                for move in service_moves:
+                    # Update ke master produk atau ke unit price komponen
+                    move.product_id.standard_price = total_wage
+        return res
