@@ -92,6 +92,7 @@ class MrpProduction(models.Model):
         # Jalankan logika jika worker_line_ids diubah ATAU jika MO baru saja di-confirm/di-write
         for mo in self:
             total_wage = sum(mo.worker_line_ids.mapped('wage'))
+            print("total_wage", total_wage)
             service_moves = mo.move_raw_ids.filtered(lambda m: m.product_id.type == 'service')
             
             if service_moves:
