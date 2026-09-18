@@ -84,5 +84,5 @@ class MrpProduction(models.Model):
             lambda m: m.product_id.type == 'service'
             )
         for move in service_moves:
-            move.product_id.standard_price = sum([x.wage for x in self.worker_line_ids])
+            # move.product_id.standard_price = sum([x.wage for x in self.worker_line_ids])
             move.cost = sum([x.wage for x in self.worker_line_ids])
