@@ -22,6 +22,7 @@
         <field name="arch" type="xml">
             
             <!-- Mengubah atribut 'attrs' pada widget web_ribbon yang sudah ada -->
+<<<<<<< HEAD
             <xpath expr="//button[@name='receive_do']" position="attributes">
 <<<<<<< HEAD
                 <attribute name="attrs">{'invisible': ['|','|', ('delivery_state', 'in', ['received']),('state', 'not in', ['done']),('user_so', '=', False)]}</attribute>
@@ -29,6 +30,11 @@
                 <attribute name="attrs">{'invisible': ['|','|',('delivery_state', 'in', ['received']),('state', 'not in', ['done']),('user_so', '=', False)]}</attribute>
 >>>>>>> 7ff6ec3e99fefe8675e616e6716d89542430d04f
             </xpath>
+=======
+            <!-- <xpath expr="//button[@name='receive_do']" position="attributes">
+                <attribute name="attrs">{'invisible': ['|','|',('delivery_state', 'in', ['received']),('state', 'not in', ['done']),('user_so', '=', False)]}</attribute>
+            </xpath> -->
+>>>>>>> e32accecb8b39024576200c39725219d0ddc1e7c
             <!-- <xpath expr="//field[@name='multi_upload_images']" position="attributes">
                 <attribute name="attrs">{'readonly': [('delivery_state', 'in', ['received'])]}</attribute>
             </xpath> -->
