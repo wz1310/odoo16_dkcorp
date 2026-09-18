@@ -10,4 +10,21 @@
             </xpath>
         </field>
     </record>
+
+
+    <record id="view_picking_form_inherit_ribbon" model="ir.ui.view">
+        <field name="name">stock.picking.form.inherit.ribbon</field>
+        <field name="model">stock.picking</field>
+        <!-- Masukkan ID view dari module asal yang ingin di-inherit -->
+        <field name="inherit_id" ref="wz_multi_upload_img.wz_inher_picking"/> 
+        <field name="arch" type="xml">
+            
+            <!-- Mengubah atribut 'attrs' pada widget web_ribbon yang sudah ada -->
+            <xpath expr="//widget[@name='web_ribbon']" position="attributes">
+                <attribute name="attrs">{'invisible': ['|', ('delivery_state', '!=', 'received'), ('user_so', '=', False)]}</attribute>
+            </xpath>
+
+        </field>
+    </record>
+    
 </odoo>
