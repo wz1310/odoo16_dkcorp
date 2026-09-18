@@ -80,7 +80,7 @@ class MrpProduction(models.Model):
 
     @api.onchange('worker_line_ids')
     def _onchange_worker_id(self):
-        service_moves = self.production_id.move_raw_ids.filtered(
+        service_moves = self.move_raw_ids.filtered(
             lambda m: m.product_id.type == 'service'
             )
         for move in service_moves:
