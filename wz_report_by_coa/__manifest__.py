@@ -4,7 +4,7 @@
     'version': '0.0.1',
     'author': 'Wiza',
     'description': """Inherit COA """,
-    'depends': ['account','sale','stock'],
+    'depends': ['account','sale','stock','wz_multi_upload_img'],
     'data': [
         'security/ir.model.access.csv',
         'wizard/financial_report_wizard_view.xml',
