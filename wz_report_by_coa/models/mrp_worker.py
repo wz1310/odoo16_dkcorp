@@ -78,28 +78,10 @@ class MrpProduction(models.Model):
                     % (len(mo.worker_line_ids), mo.max_worker_qty)
                 )
 
-    # @api.onchange('worker_line_ids')
-    # def _onchange_worker_id(self):
-    #     service_moves = self.move_raw_ids.filtered(
-    #         lambda m: m.product_id.type == 'service'
-    #         )
-    #     for move in service_moves:
-    #         move.product_id.standard_price = sum([x.wage for x in self.worker_line_ids])
-
-
-    def write(self, vals):
-        res = super(MrpProduction, self).write(vals)
-        # Jalankan logika jika worker_line_ids diubah ATAU jika MO baru saja di-confirm/di-write
-        for mo in self:
-            total_wage = sum(mo.worker_line_ids.mapped('wage'))
-            print("total_wage", total_wage)
-            service_moves = mo.move_raw_ids.filtered(lambda m: m.product_id.type == 'service').product_id
-            
-            if service_moves:
-                # Memaksa update price_unit pada stock move
-                service_moves.sudo().write({'price_unit': total_wage})
-                
-                # Jika Anda MEMANG ingin mengubah Cost di Master Produk juga:
-                # for move in service_moves:
-                #     move.product_id.sudo().write({'standard_price': total_wage})
-        return res
+    @api.onchange('worker_line_ids')
+    def _onchange_worker_id(self):
+        service_moves = self.move_raw_ids.filtered(
+            lambda m: m.product_id.type == 'service'
+            )
+        for move in service_moves:
+            move.product_id.standard_price = sum([x.wage for x in self.worker_line_ids])
