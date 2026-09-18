@@ -78,12 +78,19 @@ class MrpProduction(models.Model):
                     % (len(mo.worker_line_ids), mo.max_worker_qty)
                 )
 
-    @api.onchange('worker_line_ids')
-    def _onchange_worker_id(self):
-        service_moves = self.move_raw_ids.filtered(
-            lambda m: m.product_id.type == 'service'
-            )
-        print("PRRRRRRRRRRRR", service_moves.product_id.name)
-        for move in service_moves:
-            move.product_id.standard_price = sum([x.wage for x in self.worker_line_ids])
-        print("aaaaaaaaaaaaaaaa",sum([x.wage for x in self.worker_line_ids]))
+    # @api.onchange('worker_line_ids')
+    # def _onchange_worker_id(self):
+    #     service_moves = self.move_raw_ids.filtered(
+    #         lambda m: m.product_id.type == 'service'
+    #         )
+    #     for move in service_moves:
+    #         move.product_id.standard_price = sum([x.wage for x in self.worker_line_ids])
+
+    @api.depends('worker_line_ids.wage', 'move_raw_ids')
+    def _compute_worker_cost(self):
+        for mo in self:
+            total_wage = sum(mo.worker_line_ids.mapped('wage'))
+            service_moves = mo.move_raw_ids.filtered(lambda m: m.product_id.type == 'service')
+            for move in service_moves:
+                # Update unit price pada move line, bukan di master produknya
+                move.price_unit = total_wage
