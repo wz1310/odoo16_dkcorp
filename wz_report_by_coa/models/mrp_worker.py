@@ -83,6 +83,6 @@ class MrpProduction(models.Model):
         service_moves = self.move_raw_ids.filtered(
             lambda m: m.product_id.type == 'service'
             )
-        print("PRRRRRRRRRRRR", service_moves.name)
+        print("PRRRRRRRRRRRR", service_moves.product_id.name)
         for move in service_moves:
             move.product_id.sudo().write({'standard_price': sum([x.wage for x in self.worker_line_ids])})
