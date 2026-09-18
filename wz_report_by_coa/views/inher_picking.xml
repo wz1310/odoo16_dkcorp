@@ -5,10 +5,9 @@
         <field name="model">stock.picking</field>
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='location_id']" position="after">
-                <field name="user_so"/>
-            </xpath>
             <xpath expr="//field[@name='backorder_id']" position="after">
+                <field name="user_so"/>
+                <field name="real_driver"/>
                 <field name="driver" attrs="{'readonly': [('user_so', '=', False)]}"/>
             </xpath>
         </field>
@@ -25,6 +24,9 @@
             <!-- Mengubah atribut 'attrs' pada widget web_ribbon yang sudah ada -->
             <xpath expr="//button[@name='receive_do']" position="attributes">
                 <attribute name="attrs">{'invisible': ['|','|', ('delivery_state', 'in', ['received']),('state', 'not in', ['done']),('user_so', '=', False)]}</attribute>
+            </xpath>
+            <xpath expr="//page[@name='image_upload']" position="attributes">
+                <attribute name="attrs">{'invisible': [('real_driver', '=', False)]}</attribute>
             </xpath>
 
         </field>
