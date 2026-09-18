@@ -8,6 +8,7 @@ class SPicking(models.Model):
 	_inherit = 'stock.picking'
 
 	user_so = fields.Boolean(compute="_cek_user_so",default=False)
+	real_driver = fields.Boolean(compute="_cek_driver",default=False)
 	driver = fields.Many2one('res.users', string='Driver')
 
 
@@ -16,3 +17,10 @@ class SPicking(models.Model):
 			x.user_so = False
 			if x.env.user.id == x.sale_id.create_uid.id:
 				x.user_so = True
+
+
+	def _cek_driver(self):
+		for x in self:
+			x.real_driver = False
+			if x.env.user.id == x.driver.id:
+				x.real_driver = True
