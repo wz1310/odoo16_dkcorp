@@ -54,7 +54,8 @@ class StockMove(models.Model):
 		
 		for move in service_moves:
 			quantity = forced_quantity or move.product_uom_qty
-			unit_cost = move.product_id.standard_price
+			# unit_cost = move.product_id.standard_price
+			unit_cost = move.cost
 			self.env['stock.valuation.layer'].create({
 				'company_id': move.company_id.id,
 				'product_id': move.product_id.id,
