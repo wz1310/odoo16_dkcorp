@@ -89,11 +89,16 @@ class MrpProduction(models.Model):
 
     def write(self, vals):
         res = super(MrpProduction, self).write(vals)
-        if 'worker_line_ids' in vals:
-            for mo in self:
-                total_wage = sum(mo.worker_line_ids.mapped('wage'))
-                service_moves = mo.move_raw_ids.filtered(lambda m: m.product_id.type == 'service')
-                for move in service_moves:
-                    # Update ke master produk atau ke unit price komponen
-                    move.product_id.standard_price = total_wage
+        # Jalankan logika jika worker_line_ids diubah ATAU jika MO baru saja di-confirm/di-write
+        for mo in self:
+            total_wage = sum(mo.worker_line_ids.mapped('wage'))
+            service_moves = mo.move_raw_ids.filtered(lambda m: m.product_id.type == 'service')
+            
+            if service_moves:
+                # Memaksa update price_unit pada stock move
+                service_moves.sudo().write({'price_unit': total_wage})
+                
+                # Jika Anda MEMANG ingin mengubah Cost di Master Produk juga:
+                # for move in service_moves:
+                #     move.product_id.sudo().write({'standard_price': total_wage})
         return res
