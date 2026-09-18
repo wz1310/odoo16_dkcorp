@@ -9,7 +9,7 @@
                 <field name="user_so"/>
             </xpath>
             <xpath expr="//field[@name='backorder_id']" position="after">
-                <field name="driver"/>
+                <field name="driver" attrs="{'readonly': [('user_so', '=', False)]}"/>
             </xpath>
         </field>
     </record>
