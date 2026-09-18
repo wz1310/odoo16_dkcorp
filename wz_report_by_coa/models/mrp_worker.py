@@ -40,16 +40,6 @@ class MrpProductionWorkerLine(models.Model):
     worker_id = fields.Many2one('mrp.worker', string='Pekerja', required=True)
     wage = fields.Float(string='Upah', related='worker_id.wage', readonly=True)
 
-    @api.onchange('worker_id')
-    def _onchange_worker_id(self):
-        if self.worker_id and self.production_id:
-            # Update harga pada move raw berjenis service
-            service_moves = self.production_id.move_raw_ids.filtered(
-                lambda m: m.product_id.type == 'service'
-            )
-            for move in service_moves:
-                move.product_id.sudo().write({'standard_price': self.worker_id.wage})
-
 
 class MrpProduction(models.Model):
     _inherit = 'mrp.production'
@@ -87,3 +77,11 @@ class MrpProduction(models.Model):
                     _("Jumlah pekerja yang diinput (%s) melebihi batas maksimal (%s) berdasarkan formula SO!") 
                     % (len(mo.worker_line_ids), mo.max_worker_qty)
                 )
+
+    @api.onchange('worker_line_ids')
+    def _onchange_worker_id(self):
+        service_moves = self.production_id.move_raw_ids.filtered(
+            lambda m: m.product_id.type == 'service'
+            )
+        for move in service_moves:
+            move.product_id.sudo().write({'standard_price': sum([x.wage for x in self.worker_line_ids])})
