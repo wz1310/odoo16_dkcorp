@@ -182,7 +182,6 @@ class MrpProduction(models.Model):
 	_inherit = 'mrp.production'
 
 	def _get_moves_raw_values(self):
-		print("jalaaaaaaaaaaaaaaaaaaaaaaaaaaannnnnnnnn")
 		moves = []
 		for production in self:
 			if not production.bom_id:
@@ -213,5 +212,4 @@ class MrpProduction(models.Model):
 					operation,
 					bom_line
 				))
-				print("MOVEEEEE", bom_line.product_id.type)
 		return moves

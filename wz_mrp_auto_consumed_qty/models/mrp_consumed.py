@@ -31,7 +31,7 @@ class MrpProduction(models.Model):
     @api.onchange('qty_producing')
     def _onchangex_products_qty(self):
         for x in self:
-            if x.state in ('confirmed', 'progress') and not x.line_remark:
+            if x.state in ('confirmed', 'progress','to_close') and not x.line_remark:
                 raise UserError(_('Remark tidak boleh kosong'))
 
     @api.onchange('product_id')
