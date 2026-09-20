@@ -26,7 +26,6 @@ class StockMove(models.Model):
 		domain="[('type', 'in', ['product', 'consu', 'service']), '|', ('company_id', '=', False), ('company_id', '=', company_id)]"
 	)
 
-
 	@api.depends('raw_material_production_id.qty_producing', 'product_uom_qty', 'product_uom')
 	def _compute_should_consume_qty(self):
 		# 1. Jalankan dulu kalkulasi bawaan Odoo untuk semua komponen (seperti Bahan Baku)
@@ -192,6 +191,19 @@ class StockMove(models.Model):
 
 class MrpProduction(models.Model):
 	_inherit = 'mrp.production'
+
+	def _get_consumption_issues(self):
+		print("jallllllllllllllllllllllll")
+		# Jalankan method bawaan/super terlebih dahulu
+		issues = super(MrpProduction, self)._get_consumption_issues()
+
+		# Filter dan lewatkan (keluarkan) issue jika tipe produk adalah 'service'
+		filtered_issues = [
+			issue for issue in issues
+			if issue[1].type != 'service'
+		]
+
+		return filtered_issues
 
 	def _get_moves_raw_values(self):
 		print("_get_moves_raw_values")
