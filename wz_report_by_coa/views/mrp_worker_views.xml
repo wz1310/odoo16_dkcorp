@@ -76,4 +76,15 @@
               parent="mrp.menu_mrp_configuration"
               action="action_mrp_worker_formula"
               sequence="51"/>
+
+    <record id="view_mrpproduct_inherit" model="ir.ui.view">
+        <field name="name">mrp.product.inherit</field>
+        <field name="model">product.product</field>
+        <field name="inherit_id" ref="product.product_normal_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='detailed_type']" position="after">
+                <field name="worker"/>
+            </xpath>
+        </field>
+    </record>
 </odoo>

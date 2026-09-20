@@ -81,7 +81,7 @@ class MrpProduction(models.Model):
     @api.onchange('worker_line_ids')
     def _onchange_worker_id(self):
         service_moves = self.move_raw_ids.filtered(
-            lambda m: m.product_id.type == 'service'
+            lambda m: m.product_id.type == 'service' and m.product_id.worker
             )
         for move in service_moves:
             # move.product_id.standard_price = sum([x.wage for x in self.worker_line_ids])
@@ -105,7 +105,7 @@ class MrpProduction(models.Model):
         # Jalankan logika jika worker_line_ids diubah ATAU jika MO baru saja di-confirm/di-write
         for mo in self:
             total_wage = sum(mo.worker_line_ids.mapped('wage'))
-            service_moves = mo.move_raw_ids.filtered(lambda m: m.product_id.type == 'service')
+            service_moves = mo.move_raw_ids.filtered(lambda m: m.product_id.type == 'service' and m.product_id.worker)
             
             if service_moves:
                 # Memaksa update price_unit pada stock move
@@ -121,7 +121,13 @@ class MrpProduction(models.Model):
         res = super(MrpProduction, self).action_confirm()
         for mo in self:
             total_wage = sum(mo.worker_line_ids.mapped('wage'))
-            service_moves = mo.move_raw_ids.filtered(lambda m: m.product_id.type == 'service')
+            service_moves = mo.move_raw_ids.filtered(lambda m: m.product_id.type == 'service' and m.product_id.worker)
             if service_moves:
                 service_moves.sudo().write({'cost': total_wage})
         return res
+
+
+class MrpProduct(models.Model):
+    _inherit = 'product.product'
+
+    worker = fields.Boolean(string='Worker', default=False)

@@ -41,6 +41,7 @@ class StockMove(models.Model):
 		self.ensure_one()
 		# Jika produk bertipe service dan merupakan komponen MO
 		if self.product_id.type == 'service' and self.raw_material_production_id:
+			print("_price_unit")
 			if hasattr(self, 'cost') and self.cost:
 				# Mengembalikan unit cost (cost / quantity jika cost di MO mewakili TOTAL upah)
 				qty = self.product_uom_qty or 1.0
@@ -52,6 +53,7 @@ class StockMove(models.Model):
 		self.ensure_one()
 		# Jika produk tipe service dan berasal dari komponen MO
 		if self.product_id.type == 'service' and self.raw_material_production_id:
+			print("_get_price_unit")
 			# Gunakan field custom 'cost' atau 'price_unit' yang diisi dari MO
 			# Jika field custom Anda bernama 'cost' dan mewakili total/unit cost:
 			if hasattr(self, 'cost') and self.cost:
@@ -116,6 +118,7 @@ class StockMove(models.Model):
 		)
 
 		for move in service_moves:
+			print("_create_out_svl")
 			# Ambil nilai cost dari field 'cost' pada stock.move tersebut
 			unit_cost = move.cost if hasattr(move, 'cost') and move.cost else move.price_unit
 
@@ -123,6 +126,7 @@ class StockMove(models.Model):
 			move_svls = self.env['stock.valuation.layer'].search([('stock_move_id', '=', move.id)])
 			
 			if move_svls:
+				print("move_svls")
 				for svl in move_svls:
 					qty = abs(svl.quantity)
 					new_value = -1 * (qty * unit_cost)
@@ -132,6 +136,7 @@ class StockMove(models.Model):
 						'value': new_value,
 					})
 			else:
+				print("noooooo move_svls")
 				# Jika Odoo tidak otomatis membuat SVL (karena tipe produk service), buat manual SVL-nya
 				quantity = forced_quantity or move.product_uom_qty
 				self.env['stock.valuation.layer'].create({
@@ -177,6 +182,7 @@ class MrpProduction(models.Model):
 	_inherit = 'mrp.production'
 
 	def _get_moves_raw_values(self):
+		print("jalaaaaaaaaaaaaaaaaaaaaaaaaaaannnnnnnnn")
 		moves = []
 		for production in self:
 			if not production.bom_id:
@@ -202,9 +208,10 @@ class MrpProduction(models.Model):
 				
 				moves.append(production._get_move_raw_values(
 					bom_line.product_id,
-					line_data['qty'],
+					line_data['qty'] if bom_line.product_id.type != 'service' else 1,
 					bom_line.product_uom_id,
 					operation,
 					bom_line
 				))
+				print("MOVEEEEE", bom_line.product_id.type)
 		return moves
