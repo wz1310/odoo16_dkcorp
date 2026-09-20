@@ -49,6 +49,19 @@ class MrpProduction(models.Model):
     max_worker_qty = fields.Integer(string='Maksimal Pekerja', compute='_compute_max_worker_qty', store=True)
     worker_line_ids = fields.One2many('mrp.production.worker.line', 'production_id', string='Daftar Pekerja')
 
+
+
+    @api.onchange('move_raw_ids')
+    def _onchange_move_raw_ids(self):
+        print("ssssssssssssssssss")
+        for x in self.move_raw_ids:
+            if x.product_id.type == 'service' and x.product_id.engine_load:
+                print("waaaaaaaaaaaaaaa")
+                percent = x.product_id.engine_percent/100 if x.product_id.engine_percent > 0 else 0 
+                total_other_cost = percent * (sum([(line.rill_cost if line.rill_cost else line.cost)for line in self.move_raw_ids if line != x]))
+                x.cost = total_other_cost
+
+
     @api.depends('sale_order_id', 'sale_order_id.order_line.product_uom_qty')
     def _compute_max_worker_qty(self):
         formula = self.env['mrp.worker.formula'].search([], limit=1)
@@ -132,3 +145,5 @@ class MrpProduct(models.Model):
     _inherit = 'product.product'
 
     worker = fields.Boolean(string='Worker', default=False)
+    engine_load = fields.Boolean(string='Engine Load', default=False)
+    engine_percent = fields.Integer(string='Percentage', default=False)

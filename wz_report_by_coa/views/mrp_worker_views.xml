@@ -84,6 +84,12 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='detailed_type']" position="after">
                 <field name="worker"/>
+                <label for="engine_load" string="Engine Load"/>
+                    <div class="o_row" style="max-width: 300px;">
+                        <field name="engine_load" placeholder="Load" class="oe_inline"/>
+                        <field name="engine_percent" placeholder="Percent" class="oe_inline"/>
+                        <span>%</span>
+                    </div>
             </xpath>
         </field>
     </record>
