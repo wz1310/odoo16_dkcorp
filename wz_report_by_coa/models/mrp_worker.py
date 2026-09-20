@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import math
 from odoo import models, fields, api, _
+from odoo.tools import float_compare, float_round, float_is_zero, format_datetime
 from odoo.exceptions import ValidationError
 
 class MrpWorker(models.Model):

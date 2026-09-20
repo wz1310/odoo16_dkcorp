@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, _
+from odoo.tools import float_compare, float_round, float_is_zero, format_datetime
 
 class WzAccount(models.Model):
 	_inherit = 'account.account'
@@ -24,6 +25,17 @@ class StockMove(models.Model):
 	product_id = fields.Many2one(
 		domain="[('type', 'in', ['product', 'consu', 'service']), '|', ('company_id', '=', False), ('company_id', '=', company_id)]"
 	)
+
+
+	@api.depends('raw_material_production_id.qty_producing', 'product_uom_qty', 'product_uom')
+	def _compute_should_consume_qty(self):
+		# 1. Jalankan dulu kalkulasi bawaan Odoo untuk semua komponen (seperti Bahan Baku)
+		super(StockMove, self)._compute_should_consume_qty()
+		
+		# 2. Timpa/Override khusus untuk komponen bertipe 'service'
+		for move in self:
+			if move.raw_material_production_id and move.product_id.type == 'service':
+				move.should_consume_qty = 1.0  # Dipaksa selalu 1.00 di tampilan UI
 
 	def _get_src_account(self, account_data):
 		res = super(StockMove, self)._get_src_account(account_data)
@@ -182,6 +194,7 @@ class MrpProduction(models.Model):
 	_inherit = 'mrp.production'
 
 	def _get_moves_raw_values(self):
+		print("_get_moves_raw_values")
 		moves = []
 		for production in self:
 			if not production.bom_id:
@@ -213,3 +226,34 @@ class MrpProduction(models.Model):
 					bom_line
 				))
 		return moves
+
+	# def _update_raw_moves(self, factor):
+	# 	res = super(MrpProduction, self)._update_raw_moves(factor)
+	# 	# Reset ulang kuantitas khusus komponen service agar tetap 1
+	# 	service_moves = self.move_raw_ids.filtered(
+	# 		lambda m: m.product_id.type == 'service' and m.state not in ('done', 'cancel')
+	# 	)
+	# 	if service_moves:
+	# 		service_moves.write({'product_uom_qty': 1.0})
+	# 	return res
+
+	def _set_qty_producing(self):
+		print("_set_qty_producing")
+		if self.product_id.tracking == 'serial':
+			qty_producing_uom = self.product_uom_id._compute_quantity(self.qty_producing, self.product_id.uom_id, rounding_method='HALF-UP')
+			if qty_producing_uom != 1:
+				self.qty_producing = self.product_id.uom_id._compute_quantity(1, self.product_uom_id, rounding_method='HALF-UP')
+
+		for move in (self.move_raw_ids.filtered(lambda m: m.product_id.type != 'service') | self.move_finished_ids.filtered(lambda m: m.product_id != self.product_id and m.product_id.type != 'service')):
+			if move._should_bypass_set_qty_producing() or not move.product_uom:
+				continue
+
+			new_qty = float_round((self.qty_producing - self.qty_produced) * move.unit_factor, precision_rounding=move.product_uom.rounding)
+			if self.use_auto_consume_components_lots and move.has_tracking in ('lot', 'serial'):
+				if float_compare(move.reserved_availability, 0, precision_rounding=move.product_uom.rounding) <= 0:
+					continue
+				else:
+					new_qty = min(new_qty, move.reserved_availability)
+
+			move.move_line_ids.filtered(lambda ml: ml.state not in ('done', 'cancel')).qty_done = 0
+			move._set_quantity_done(new_qty)
