@@ -77,21 +77,21 @@ class StockMove(models.Model):
 
 	def _get_price_unit(self):
 		print("=========================_get_price_unit")
-        self.ensure_one()
-        
-        # 1. Cek jika move ini merupakan komponen dari Manufacturing Order (MO)
-        if self.raw_material_production_id:
-            # Jika 'rill_cost' diisi dan tidak 0, gunakan 'rill_cost'
-            if hasattr(self, 'rill_cost') and self.rill_cost:
-                return self.rill_cost
-            
-            # Jika 'rill_cost' kosong/0, cek apakah ada field 'cost' custom
-            elif hasattr(self, 'cost') and self.cost:
-                return self.cost
+		self.ensure_one()
+		
+		# 1. Cek jika move ini merupakan komponen dari Manufacturing Order (MO)
+		if self.raw_material_production_id:
+			# Jika 'rill_cost' diisi dan tidak 0, gunakan 'rill_cost'
+			if hasattr(self, 'rill_cost') and self.rill_cost:
+				return self.rill_cost
+			
+			# Jika 'rill_cost' kosong/0, cek apakah ada field 'cost' custom
+			elif hasattr(self, 'cost') and self.cost:
+				return self.cost
 
-        # 2. Jika bukan komponen MO atau rill_cost/cost bernilai 0, 
-        # kembalikan ke method standar bawaan Odoo (mengambil standard_price master produk)
-        return super(StockMove, self)._get_price_unit()
+		# 2. Jika bukan komponen MO atau rill_cost/cost bernilai 0, 
+		# kembalikan ke method standar bawaan Odoo (mengambil standard_price master produk)
+		return super(StockMove, self)._get_price_unit()
 
 	# def _get_price_unit(self):
 	# 	self.ensure_one()
