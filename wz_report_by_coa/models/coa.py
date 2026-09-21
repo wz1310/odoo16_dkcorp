@@ -139,50 +139,116 @@ class StockMove(models.Model):
 
 
 
-	def _create_out_svl(self, forced_quantity=None):
-		# 1. Jalankan dulu fungsi standar Odoo
-		svl_ids = super(StockMove, self)._create_out_svl(forced_quantity=forced_quantity)
+	# def _create_out_svl(self, forced_quantity=None):
+	# 	# 1. Jalankan dulu fungsi standar Odoo
+	# 	svl_ids = super(StockMove, self)._create_out_svl(forced_quantity=forced_quantity)
 
-		# 2. Cari move service/tenaga kerja yang merupakan komponen MO
-		service_moves = self.filtered(
-			lambda m: m.product_id.type == 'service' and m.raw_material_production_id
-		)
+	# 	# 2. Cari move service/tenaga kerja yang merupakan komponen MO
+	# 	service_moves = self.filtered(
+	# 		lambda m: m.product_id.type == 'service' and m.raw_material_production_id
+	# 	)
 
-		for move in service_moves:
-			print("_create_out_svl")
-			# Ambil nilai cost dari field 'cost' pada stock.move tersebut
-			# unit_cost = move.cost if hasattr(move, 'cost') and move.cost else move.price_unit
-			unit_cost = move.rill_cost if hasattr(move, 'rill_cost') and move.rill_cost else move.price_unit
+	# 	for move in service_moves:
+	# 		print("_create_out_svl")
+	# 		# Ambil nilai cost dari field 'cost' pada stock.move tersebut
+	# 		unit_cost = move.cost if hasattr(move, 'cost') and move.cost else move.price_unit
 
-			# Cari SVL yang baru saja dibuat untuk move ini
-			move_svls = self.env['stock.valuation.layer'].search([('stock_move_id', '=', move.id)])
+	# 		# Cari SVL yang baru saja dibuat untuk move ini
+	# 		move_svls = self.env['stock.valuation.layer'].search([('stock_move_id', '=', move.id)])
 			
-			if move_svls:
-				print("move_svls")
-				for svl in move_svls:
-					qty = abs(svl.quantity)
-					new_value = -1 * (qty * unit_cost)
-					# Force update nilai unit_cost dan total value di SVL
-					svl.write({
-						'unit_cost': unit_cost,
-						'value': new_value,
-					})
-			else:
-				print("noooooo move_svls")
-				# Jika Odoo tidak otomatis membuat SVL (karena tipe produk service), buat manual SVL-nya
-				quantity = forced_quantity or move.product_uom_qty
-				self.env['stock.valuation.layer'].create({
-					'company_id': move.company_id.id,
-					'product_id': move.product_id.id,
-					'quantity': -quantity,
+	# 		if move_svls:
+	# 			print("move_svls")
+	# 			for svl in move_svls:
+	# 				qty = abs(svl.quantity)
+	# 				new_value = -1 * (qty * unit_cost)
+	# 				# Force update nilai unit_cost dan total value di SVL
+	# 				svl.write({
+	# 					'unit_cost': unit_cost,
+	# 					'value': new_value,
+	# 				})
+	# 		else:
+	# 			print("noooooo move_svls")
+	# 			# Jika Odoo tidak otomatis membuat SVL (karena tipe produk service), buat manual SVL-nya
+	# 			quantity = forced_quantity or move.product_uom_qty
+	# 			self.env['stock.valuation.layer'].create({
+	# 				'company_id': move.company_id.id,
+	# 				'product_id': move.product_id.id,
+	# 				'quantity': -quantity,
+	# 				'unit_cost': unit_cost,
+	# 				'value': -quantity * unit_cost,
+	# 				'remaining_qty': 0,
+	# 				'stock_move_id': move.id,
+	# 				'description': move.reference or move.origin,
+	# 			})
+
+	# 	return svl_ids
+
+
+	def _create_out_svl(self, forced_quantity=None):
+		svl_vals_list = []
+		
+		for move in self:
+			move = move.with_company(move.company_id)
+			valued_move_lines = move._get_out_move_lines()
+			valued_quantity = 0
+			for valued_move_line in valued_move_lines:
+				valued_quantity += valued_move_line.product_uom_id._compute_quantity(
+					valued_move_line.qty_done, move.product_id.uom_id, rounding_method="HALF-UP"
+				)
+			
+			quantity = forced_quantity or valued_quantity
+			if float_is_zero(quantity, precision_rounding=move.product_id.uom_id.rounding):
+				continue
+
+			# 1. Jalankan method bawaan Odoo untuk membuat nilai awal SVL
+			svl_vals = move.product_id._prepare_out_svl_vals(quantity, move.company_id)
+			svl_vals.update(move._prepare_common_svl_vals())
+
+			# 2. KHUSUS KOMPONEN MO: Cek kustomisasi Rill Cost / Cost
+			if move.raw_material_production_id:
+				custom_unit_cost = False
+				
+				# Prioritas 1: Rill Cost
+				if hasattr(move, 'rill_cost') and move.rill_cost:
+					custom_unit_cost = move.rill_cost
+				# Prioritas 2: Cost
+				elif hasattr(move, 'cost') and move.cost:
+					custom_unit_cost = move.cost
+
+				# Jika ada nilai kustomisasi (Rill Cost / Cost > 0), timpa nilai SVL sebelum di-create
+				if custom_unit_cost is not False and not float_is_zero(custom_unit_cost, precision_rounding=move.product_id.uom_id.rounding):
+					# Kuantitas untuk out_svl bersifat negatif
+					abs_qty = abs(quantity)
+					svl_vals['unit_cost'] = custom_unit_cost
+					svl_vals['value'] = move.company_id.currency_id.round(-1 * (abs_qty * custom_unit_cost))
+
+			if forced_quantity:
+				svl_vals['description'] = 'Correction of %s (modification of past move)' % (move.picking_id.name or move.name)
+			svl_vals['description'] += svl_vals.pop('rounding_adjustment', '')
+			svl_vals_list.append(svl_vals)
+
+		# 3. Buat SVL manual untuk komponen Service jika Odoo tidak membuatkannya
+		service_moves = self.filtered(
+			lambda m: m.raw_material_production_id 
+			and m.product_id.type == 'service' 
+			and m.id not in [v.get('stock_move_id') for v in svl_vals_list]
+		)
+		for s_move in service_moves:
+			unit_cost = s_move.rill_cost if hasattr(s_move, 'rill_cost') and s_move.rill_cost else (s_move.cost if hasattr(s_move, 'cost') and s_move.cost else s_move.price_unit)
+			qty = forced_quantity or s_move.product_uom_qty
+			if not float_is_zero(unit_cost, precision_rounding=s_move.product_id.uom_id.rounding):
+				svl_vals_list.append({
+					'stock_move_id': s_move.id,
+					'company_id': s_move.company_id.id,
+					'product_id': s_move.product_id.id,
+					'quantity': -qty,
 					'unit_cost': unit_cost,
-					'value': -quantity * unit_cost,
+					'value': s_move.company_id.currency_id.round(-qty * unit_cost),
 					'remaining_qty': 0,
-					'stock_move_id': move.id,
-					'description': move.reference or move.origin,
+					'description': s_move.reference or s_move.origin,
 				})
 
-		return svl_ids
+		return self.env['stock.valuation.layer'].sudo().create(svl_vals_list)
 
 	def _account_entry_move(self, qty, description, svl_id, cost):
 		if self.product_id.type == 'service' and self.raw_material_production_id:
