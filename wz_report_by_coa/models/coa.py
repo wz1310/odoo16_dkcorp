@@ -151,7 +151,8 @@ class StockMove(models.Model):
 		for move in service_moves:
 			print("_create_out_svl")
 			# Ambil nilai cost dari field 'cost' pada stock.move tersebut
-			unit_cost = move.cost if hasattr(move, 'cost') and move.cost else move.price_unit
+			# unit_cost = move.cost if hasattr(move, 'cost') and move.cost else move.price_unit
+			unit_cost = move.rill_cost if hasattr(move, 'rill_cost') and move.rill_cost else move.price_unit
 
 			# Cari SVL yang baru saja dibuat untuk move ini
 			move_svls = self.env['stock.valuation.layer'].search([('stock_move_id', '=', move.id)])
