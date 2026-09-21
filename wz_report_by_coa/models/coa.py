@@ -81,6 +81,7 @@ class StockMove(models.Model):
 		
 		# 1. Cek jika move ini merupakan komponen dari Manufacturing Order (MO)
 		if self.raw_material_production_id:
+			print("benar raw MO")
 			# Jika 'rill_cost' diisi dan tidak 0, gunakan 'rill_cost'
 			if hasattr(self, 'rill_cost') and self.rill_cost:
 				return self.rill_cost
