@@ -48,17 +48,17 @@ class StockMove(models.Model):
 				return expense_account.id
 		return res
 
-	def _price_unit(self):
-		self.ensure_one()
-		# Jika produk bertipe service dan merupakan komponen MO
-		if self.product_id.type == 'service' and self.raw_material_production_id:
-			print("_price_unit")
-			if hasattr(self, 'cost') and self.cost:
-				# Mengembalikan unit cost (cost / quantity jika cost di MO mewakili TOTAL upah)
-				qty = self.product_uom_qty or 1.0
-				return self.cost / qty
-			elif self.price_unit:
-				return self.price_unit
+	# def _price_unit(self):
+	# 	self.ensure_one()
+	# 	# Jika produk bertipe service dan merupakan komponen MO
+	# 	if self.product_id.type == 'service' and self.raw_material_production_id:
+	# 		print("_price_unit")
+	# 		if hasattr(self, 'cost') and self.cost:
+	# 			# Mengembalikan unit cost (cost / quantity jika cost di MO mewakili TOTAL upah)
+	# 			qty = self.product_uom_qty or 1.0
+	# 			return self.cost / qty
+	# 		elif self.price_unit:
+	# 			return self.price_unit
 
 	# def _get_price_unit(self):
 	# 	self.ensure_one()
