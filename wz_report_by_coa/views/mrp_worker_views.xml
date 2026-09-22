@@ -8,7 +8,8 @@
         <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='company_id']" position="after">
-                <field name="sale_order_id" options="{'no_create': True}" domain="[('state', 'in', ['sale', 'done'])]" attrs="{'readonly': [('state', '=', 'done')]}"/>
+                <!-- <field name="sale_order_id" options="{'no_create': True}" domain="[('state', 'in', ['sale', 'done'])]" attrs="{'readonly': [('state', '=', 'done')]}"/> -->
+                <field name="sale_order_ids" widget="many2many_tags" options="{'no_create': True}" domain="[('state', 'in', ['sale', 'done'])]"/>
                 <field name="max_worker_qty" readonly="1"/>
             </xpath>
 
