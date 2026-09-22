@@ -8,7 +8,7 @@
             <xpath expr="//field[@name='backorder_id']" position="after">
                 <field name="user_so" invisible="True"/>
                 <field name="real_driver" invisible="True"/>
-                <field name="driver" attrs="{'readonly': [('user_so', '=', False)]}"/>
+                <field name="driver"/>
                 <!-- <field name="driver" attrs="{'readonly': [('user_so', '=', False)]}"/> -->
             </xpath>
         </field>
