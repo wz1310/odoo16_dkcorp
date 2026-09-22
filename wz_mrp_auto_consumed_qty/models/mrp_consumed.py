@@ -100,7 +100,8 @@ class InheritSmove(models.Model):
 
     def change_rill_cost(self):
         for x in self:
-            x.rill_cost = x.cost
+            if x.product_id.type != 'service':
+                x.rill_cost = x.cost
 
     @api.onchange('rill_cost')
     def _onchange_rill_cost(self):
