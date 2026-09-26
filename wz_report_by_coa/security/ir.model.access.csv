@@ -3,3 +3,5 @@ access_financial_report_coa_wizard,financial.report.coa.wizard,model_financial_r
 access_mrp_worker,mrp.worker,model_mrp_worker,base.group_user,1,1,1,1
 access_mrp_worker_formula,mrp.worker.formula,model_mrp_worker_formula,base.group_user,1,1,1,1
 access_mrp_production_worker_line,mrp.production.worker.line,model_mrp_production_worker_line,base.group_user,1,1,1,1
+access_sale_order_worker_line,sale.order.worker.line,model_sale_order_worker_line,base.group_user,1,1,1,1
+access_sale_order_batch,sale.order.batch,model_sale_order_batch,base.group_user,1,1,1,1
