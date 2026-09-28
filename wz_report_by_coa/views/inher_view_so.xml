@@ -41,12 +41,13 @@
                 <sheet>
                     <group>
                         <field name="batch_id" options="{'no_create_edit': False}"/>
+                        <field name="max_worker_qty" readonly="1"/>
                     </group>
                     <notebook>
                         <page string="Daftar Pekerja">
                             <field name="worker_line_ids">
                                 <tree editable="bottom">
-                                    <field name="worker_id"/>
+                                    <field name="worker_id" options="{'no_create': True}"/>
                                 </tree>
                             </field>
                         </page>

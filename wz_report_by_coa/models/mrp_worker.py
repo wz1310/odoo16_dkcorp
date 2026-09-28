@@ -55,14 +55,25 @@ class MrpProduction(models.Model):
 	@api.onchange('batch_id')
 	def _onchange_batch_id(self):
 		if self.batch_id:
+			# 1. Update Sales Order list
 			so_records = self.env['sale.order'].search([
 				('batch_id', '=', self.batch_id.id),
 				('state', 'in', ['sale', 'done'])
 			])
 			self.sale_order_ids = [(6, 0, so_records.ids)]
+
+			# 2. Update Worker Lines dari Batch (mengambil worker_id dari worker_line_ids di Batch)
+			if self.batch_id.worker_line_ids:
+				worker_lines = [
+					(0, 0, {'worker_id': line.worker_id.id}) 
+					for line in self.batch_id.worker_line_ids if line.worker_id
+				]
+				self.worker_line_ids = [(5, 0, 0)] + worker_lines
+			else:
+				self.worker_line_ids = [(5, 0, 0)]
 		else:
 			self.sale_order_ids = [(5, 0, 0)]
-
+			self.worker_line_ids = [(5, 0, 0)]
 
 
 	@api.onchange('move_raw_ids')
