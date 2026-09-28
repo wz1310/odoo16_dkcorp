@@ -24,6 +24,15 @@ class SaleOrder(models.Model):
     batch_id = fields.Many2one('sale.order.batch', string='Batch')
 
 
+class SaleOrderBatchWorkerLine(models.Model):
+    _name = 'sale.order.batch.worker.line'
+    _description = 'Detail Pekerja Master Batch'
+    _rec_name = 'worker_id' # <-- Tambahkan baris ini
+
+    batch_id = fields.Many2one('sale.order.batch', string='Batch', ondelete='cascade')
+    worker_id = fields.Many2one('mrp.worker', string='Pekerja', required=True)
+
+
 class SaleOrderBatch(models.Model):
     _name = 'sale.order.batch'
     _description = 'Master Batch Sales Order'
@@ -36,6 +45,12 @@ class SaleOrderBatch(models.Model):
         'sale.order', 
         'batch_id', 
         string='Sales Order'
+    )
+    # Field One2many untuk merekam Daftar Pekerja (mrp.worker) pada Batch ini
+    worker_line_ids = fields.One2many(
+        'sale.order.batch.worker.line',
+        'batch_id',
+        string='Daftar Pekerja'
     )
 
 
@@ -74,9 +89,10 @@ class SaleOrderAssignWorkerWizard(models.TransientModel):
         if not orders:
             raise ValidationError(_("Tidak ada Sales Order yang dipilih!"))
 
-        # Siapkan list tuple untuk pembuatan record 'sale.order.worker.line'
+        # Siapkan tuple pembuatan record 'sale.order.worker.line'
         worker_vals = [(0, 0, {'worker_id': line.worker_id.id}) for line in self.worker_line_ids]
 
+        # Update Sales Order yang diproses
         for order in orders:
             vals = {}
             if self.batch_id:
@@ -88,5 +104,12 @@ class SaleOrderAssignWorkerWizard(models.TransientModel):
 
             if vals:
                 order.write(vals)
+
+        # Update Daftar Pekerja (mrp.worker) pada Master Batch
+        if self.batch_id and worker_vals:
+            batch_worker_vals = [(0, 0, {'worker_id': line.worker_id.id}) for line in self.worker_line_ids]
+            self.batch_id.write({
+                'worker_line_ids': [(5, 0, 0)] + batch_worker_vals
+            })
 
         return {'type': 'ir.actions.act_window_close'}

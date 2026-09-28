@@ -45,10 +45,23 @@ class MrpProductionWorkerLine(models.Model):
 class MrpProduction(models.Model):
 	_inherit = 'mrp.production'
 
+	batch_id = fields.Many2one('sale.order.batch', string='Batch')
 	# Mengubah ke Many2many agar 1 MO bisa memilih banyak Sales Order
 	sale_order_ids = fields.Many2many('sale.order', string='Sales Order Ref')
 	max_worker_qty = fields.Integer(string='Maksimal Pekerja', compute='_compute_max_worker_qty', store=True)
 	worker_line_ids = fields.One2many('mrp.production.worker.line', 'production_id', string='Daftar Pekerja')
+
+
+	@api.onchange('batch_id')
+	def _onchange_batch_id(self):
+		if self.batch_id:
+			so_records = self.env['sale.order'].search([
+				('batch_id', '=', self.batch_id.id),
+				('state', 'in', ['sale', 'done'])
+			])
+			self.sale_order_ids = [(6, 0, so_records.ids)]
+		else:
+			self.sale_order_ids = [(5, 0, 0)]
 
 
 
