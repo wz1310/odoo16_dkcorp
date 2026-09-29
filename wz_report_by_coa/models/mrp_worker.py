@@ -53,6 +53,8 @@ class MrpProduction(models.Model):
 	max_worker_qty = fields.Integer(string='Maksimal Pekerja', compute='_compute_max_worker_qty', store=True)
 	worker_line_ids = fields.One2many('mrp.production.worker.line', 'production_id', string='Daftar Pekerja')
 
+	# tes
+
 	def user_mo(self):
 		for x in self:
 			x.cek_user_mo = False
