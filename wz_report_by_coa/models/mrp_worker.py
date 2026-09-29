@@ -45,12 +45,25 @@ class MrpProductionWorkerLine(models.Model):
 class MrpProduction(models.Model):
 	_inherit = 'mrp.production'
 
+	cek_leader = fields.Boolean(compute='leader_mo',string='Leader')
+	cek_user_mo = fields.Boolean(compute='user_mo',string='Leader')
 	batch_id = fields.Many2one('sale.order.batch', string='Batch')
 	# Mengubah ke Many2many agar 1 MO bisa memilih banyak Sales Order
 	sale_order_ids = fields.Many2many('sale.order', string='Sales Order Ref')
 	max_worker_qty = fields.Integer(string='Maksimal Pekerja', compute='_compute_max_worker_qty', store=True)
 	worker_line_ids = fields.One2many('mrp.production.worker.line', 'production_id', string='Daftar Pekerja')
 
+	def user_mo(self):
+		for x in self:
+			x.cek_user_mo = False
+			if self.env.user.has_group('wz_report_by_coa.group_mo_user') and x.product_id.categ_id.name in ('FINISHED GOOD') :
+				x.cek_user_mo = True
+
+	def leader_mo(self):
+		for x in self:
+			x.cek_leader = False
+			if self.env.user.has_group('wz_report_by_coa.group_mo_leader') and x.product_id.categ_id.name in ('FINISHED GOOD'):
+				x.cek_leader = True
 
 	@api.onchange('batch_id')
 	def _onchange_batch_id(self):

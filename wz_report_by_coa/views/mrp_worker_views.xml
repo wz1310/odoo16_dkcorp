@@ -14,8 +14,34 @@
                 <field name="max_worker_qty" readonly="1"/>
             </xpath>
 
+            <!-- Pastikan field cek_leader dipanggil dulu di view agar nilainya bisa dibaca XML -->
+            <xpath expr="//field[@name='company_id']" position="after">
+                <field name="cek_leader" invisible="0"/>
+                <field name="cek_user_mo" invisible="0"/>
+            </xpath>
+
+            <!-- Menambahkan kondisi attrs invisible pada group pertama -->
+            <xpath expr="//sheet/group/group[1]" position="attributes">
+                <attribute name="attrs">{'invisible': [('cek_user_mo', '=', True)]}</attribute>
+            </xpath>
+
+            <!-- 1. Sembunyikan page 'Components' jika cek_leader = True -->
+            <xpath expr="//page[@name='components']" position="attributes">
+                <attribute name="attrs">{'invisible': [('cek_leader', '=',True)]}</attribute>
+            </xpath>
+
+            <!-- 2. Sembunyikan page 'Miscellaneous' jika cek_leader = True -->
+            <xpath expr="//page[@name='miscellaneous']" position="attributes">
+                <attribute name="attrs">{'invisible': [('cek_leader', '=',True)]}</attribute>
+            </xpath>
+
+            <!-- 3. Sembunyikan page 'approval_matrix' jika cek_leader = True -->
+            <xpath expr="//page[@name='approval_matrix']" position="attributes">
+                <attribute name="attrs">{'invisible': [('cek_leader', '=',True)]}</attribute>
+            </xpath>
+
             <xpath expr="//notebook" position="inside">
-                <page string="Daftar Pekerja" name="worker_tab">
+                <page string="Daftar Pekerja" name="worker_tab" attrs="{'invisible': [('cek_leader', '=', True)]}">
                     <field name="worker_line_ids" attrs="{'readonly': [('state', '=', 'done')]}">
                         <tree editable="bottom">
                             <field name="worker_id"/>
@@ -94,5 +120,13 @@
                     </div>
             </xpath>
         </field>
+    </record>
+
+
+     <record id="group_mo_leader" model="res.groups">
+        <field name="name">MO Leader</field>
+    </record>
+    <record id="group_mo_user" model="res.groups">
+        <field name="name">MO User</field>
     </record>
 </odoo>
