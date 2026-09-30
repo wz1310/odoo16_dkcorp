@@ -20,7 +20,7 @@ class InheritConfirmDateWizard(models.TransientModel):
                 sale_obj.date_order = self.confirmation_force_date
             picking = self.env['stock.picking'].search([('sale_id', '=', sale_obj.id), ('state', 'not in', ['cancel'])])
             if picking:
-                picking.sender_approved = self.env.user.name
+                picking.receiver_approved = self.env.user.name
                 picking.partner_id = sale_obj.partner_id.id
                 picking.cek_matrix()
                 picking.approval_ids._send_notification()
@@ -38,7 +38,7 @@ class InheritConfirmDateWizard(models.TransientModel):
             sale_obj.action_confirm() 
             picking = self.env['stock.picking'].search([('sale_id', '=', sale_obj.id), ('state', 'not in', ['cancel'])])
             if picking:
-                picking.sender_approved = self.env.user.name
+                picking.receiver_approved = self.env.user.name
                 picking.partner_id = sale_obj.partner_id.id
                 picking.cek_matrix()
                 picking.approval_ids._send_notification()
