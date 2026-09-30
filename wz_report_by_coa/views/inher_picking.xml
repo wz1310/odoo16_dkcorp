@@ -11,6 +11,11 @@
                 <field name="driver"/>
                 <!-- <field name="driver" attrs="{'readonly': [('user_so', '=', False)]}"/> -->
             </xpath>
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="driver_approved" />
+                <field name="sender_approved" />
+                <field name="receiver_approved"/>
+            </xpath>
         </field>
     </record>
 
