@@ -46,7 +46,7 @@ class MrpProduction(models.Model):
 	_inherit = 'mrp.production'
 
 	cek_leader = fields.Boolean(compute='leader_mo',string='Leader')
-	cek_user_mo = fields.Boolean(compute='user_mo',string='Leader')
+	cek_user_mo = fields.Boolean(compute='user_mo',string='User')
 	batch_id = fields.Many2one('sale.order.batch', string='Batch')
 	# Mengubah ke Many2many agar 1 MO bisa memilih banyak Sales Order
 	sale_order_ids = fields.Many2many('sale.order', string='Sales Order Ref')
