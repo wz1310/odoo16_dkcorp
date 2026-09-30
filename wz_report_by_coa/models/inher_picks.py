@@ -15,7 +15,7 @@ class SPicking(models.Model):
 	receiver_approved = fields.Char(string="Approved by Receiver")
 
 
-	def _driver_approved(self):
+	def button_driver_approved(self):
 		for x in self:
 			x.driver_approved = x.env.user.name
 
