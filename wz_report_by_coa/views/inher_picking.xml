@@ -8,13 +8,17 @@
             <xpath expr="//field[@name='backorder_id']" position="after">
                 <field name="user_so" invisible="True"/>
                 <field name="real_driver" invisible="True"/>
-                <field name="driver"/>
+                <field name="cek_driver_approved" invisible="True"/>
+                <field name="driver" options="{'no_create': True}"/>
                 <!-- <field name="driver" attrs="{'readonly': [('user_so', '=', False)]}"/> -->
             </xpath>
             <xpath expr="//field[@name='user_id']" position="after">
-                <field name="driver_approved" />
-                <field name="sender_approved" />
-                <field name="receiver_approved"/>
+                <field name="driver_approved" readonly="1" force_save="True"/>
+                <field name="date_driver_approved" readonly="1" force_save="True"/>
+                <field name="sender_approved" readonly="1" force_save="True"/>
+                <field name="date_sender_approved" readonly="1" force_save="True"/>
+                <field name="receiver_approved" readonly="1" force_save="True"/>
+                <field name="date_receiver_approved" readonly="1" force_save="True"/>
             </xpath>
         </field>
     </record>
@@ -32,7 +36,7 @@
                 <attribute name="attrs">{'invisible': ['|','|', ('delivery_state', 'in', ['received']),('state', 'not in', ['done']),('user_so', '=', False)]}</attribute>
             </xpath>
             <xpath expr="//button[@name='receive_do']" position="after">
-                <button string="Driver Approval" name="button_driver_approved" type="object" class="btn-primary"/>
+                <button string="Driver Approval" name="button_driver_approved" type="object" class="btn-primary" attrs="{'invisible': [('cek_driver_approved', '=', True)]}"/>
             </xpath>
             <xpath expr="//page[@name='image_upload']" position="attributes">
                 <attribute name="attrs">{'invisible': [('real_driver', '=', False)]}</attribute>

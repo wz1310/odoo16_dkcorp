@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import math
 from odoo import models, fields, api, _
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError,UserError
 
 
 class SPicking(models.Model):
@@ -9,15 +9,25 @@ class SPicking(models.Model):
 
 	user_so = fields.Boolean(compute="_cek_user_so",default=False)
 	real_driver = fields.Boolean(compute="_cek_driver",default=False)
-	driver = fields.Many2one('res.users', string='Driver')
+	driver = fields.Many2one('res.users', string='Driver',domain=lambda self: [('groups_id', 'in', [self.env.ref('wz_report_by_coa.group_driver').id])])
 	driver_approved = fields.Char(string="Approved by Driver")
+	cek_driver_approved = fields.Boolean()
 	sender_approved = fields.Char(string="Approved by Sender")
 	receiver_approved = fields.Char(string="Approved by Receiver")
+	date_driver_approved = fields.Datetime(string="Date Approved by Driver")
+	date_sender_approved = fields.Datetime(string="Date Approved by Sender")
+	date_receiver_approved = fields.Datetime(string="Date Approved by Receiver")
 
 
 	def button_driver_approved(self):
 		for x in self:
-			x.driver_approved = x.env.user.name
+			x.cek_driver_approved = False
+			if x.driver:
+				x.driver_approved = x.driver.name
+				x.date_driver_approved = fields.Datetime.now()
+				x.cek_driver_approved = True
+			else:
+				raise UserError(_("Please fill the driver first."))
 
 
 	def _cek_user_so(self):
@@ -37,4 +47,5 @@ class SPicking(models.Model):
 		res = super(SPicking, self).button_validate_custom()
 		for x in self:
 			x.sender_approved = x.env.user.name
+			x.date_sender_approved = fields.Datetime.now()
 		return res
