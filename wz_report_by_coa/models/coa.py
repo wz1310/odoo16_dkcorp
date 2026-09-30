@@ -210,10 +210,10 @@ class StockMove(models.Model):
 				
 				# Prioritas 1: Rill Cost
 				if hasattr(move, 'rill_cost') and move.rill_cost:
-					custom_unit_cost = move.rill_cost
+					custom_unit_cost = move.rill_cost/quantity
 				# Prioritas 2: Cost
 				elif hasattr(move, 'cost') and move.cost:
-					custom_unit_cost = move.cost
+					custom_unit_cost = move.cost/quantity
 
 				# Jika ada nilai kustomisasi (Rill Cost / Cost > 0), timpa nilai SVL sebelum di-create
 				if custom_unit_cost is not False and not float_is_zero(custom_unit_cost, precision_rounding=move.product_id.uom_id.rounding):
