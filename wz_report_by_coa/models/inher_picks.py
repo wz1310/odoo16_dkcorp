@@ -33,8 +33,8 @@ class SPicking(models.Model):
 			if x.env.user.id == x.driver.id or x.env.user.id == x.sale_id.create_uid.id:
 				x.real_driver = True
 
-    def button_validate_custom(self):
-    	res = super(SPicking, self).button_validate_custom()
-    	for x in self:
-    		x.sender_approved = x.env.user.name
-    	return res
+	def button_validate_custom(self):
+		res = super(SPicking, self).button_validate_custom()
+		for x in self:
+			x.sender_approved = x.env.user.name
+		return res
