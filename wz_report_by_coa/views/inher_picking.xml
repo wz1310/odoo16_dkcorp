@@ -26,6 +26,9 @@
             <xpath expr="//button[@name='receive_do']" position="attributes">
                 <attribute name="attrs">{'invisible': ['|','|', ('delivery_state', 'in', ['received']),('state', 'not in', ['done']),('user_so', '=', False)]}</attribute>
             </xpath>
+            <xpath expr="//button[@name='receive_do']" position="after">
+                <button string="Driver Approval" name="_driver_approved" type="object" class="btn-primary"/>
+            </xpath>
             <xpath expr="//page[@name='image_upload']" position="attributes">
                 <attribute name="attrs">{'invisible': [('real_driver', '=', False)]}</attribute>
             </xpath>

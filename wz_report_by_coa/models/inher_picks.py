@@ -10,6 +10,14 @@ class SPicking(models.Model):
 	user_so = fields.Boolean(compute="_cek_user_so",default=False)
 	real_driver = fields.Boolean(compute="_cek_driver",default=False)
 	driver = fields.Many2one('res.users', string='Driver')
+	driver_approved = fields.Char(string="Approved by Driver")
+	sender_approved = fields.Char(string="Approved by Sender")
+	receiver_approved = fields.Char(string="Approved by Receiver")
+
+
+	def _driver_approved(self):
+		for x in self:
+			x.driver_approved = x.env.user.name
 
 
 	def _cek_user_so(self):
