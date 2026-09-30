@@ -22,22 +22,22 @@
 
             <!-- Menambahkan kondisi attrs invisible pada group pertama -->
             <xpath expr="//sheet/group/group[1]" position="attributes">
-                <attribute name="attrs">{'invisible': [('cek_user_mo', '=', True)]}</attribute>
+                <attribute name="attrs">{'invisible': [('cek_user_mo', '=', True),('cek_leader', '=', False)]}</attribute>
             </xpath>
 
             <!-- 1. Sembunyikan page 'Components' jika cek_leader = True -->
             <xpath expr="//page[@name='components']" position="attributes">
-                <attribute name="attrs">{'invisible': [('cek_leader', '=',True)]}</attribute>
+                <attribute name="attrs">{'invisible': [('cek_leader', '=',True),('cek_user_mo', '=',False)]}</attribute>
             </xpath>
 
             <!-- 2. Sembunyikan page 'Miscellaneous' jika cek_leader = True -->
             <xpath expr="//page[@name='miscellaneous']" position="attributes">
-                <attribute name="attrs">{'invisible': [('cek_leader', '=',True)]}</attribute>
+                <attribute name="attrs">{'invisible': [('cek_leader', '=',True),('cek_user_mo', '=',False)]}</attribute>
             </xpath>
 
             <!-- 3. Sembunyikan page 'approval_matrix' jika cek_leader = True -->
             <xpath expr="//page[@name='approval_matrix']" position="attributes">
-                <attribute name="attrs">{'invisible': [('cek_leader', '=',True)]}</attribute>
+                <attribute name="attrs">{'invisible': [('cek_leader', '=',True),('cek_user_mo', '=',False)]}</attribute>
             </xpath>
 
             <xpath expr="//notebook" position="inside">
