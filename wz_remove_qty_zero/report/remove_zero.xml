@@ -2,29 +2,79 @@
     <data>
         <template id="report_delivery_document_inherit" inherit_id="mstl_report.report_delivery_document">
             
+            <!-- Mengubah loop move_ids -->
             <xpath expr="//t[@t-foreach='o.move_ids']" position="attributes">
                 <attribute name="t-foreach">o.move_ids.filtered(lambda l: l.quantity_done != 0)</attribute>
             </xpath>
 
-            
-        <xpath expr="//table[3]//tr[1]" position="replace">
-            <tr>
-                <td style="width:100%;" align="right">
-                    <span class="small-font">
-                        Dibuat: 
-                        <t t-if="o.user_id">
-                        <t t-esc="o.user_id.name"/>
-                        </t>
-                        <t t-else="">
-                        <t t-esc="o.write_uid.name"/>
-                        </t> 
-                        | 
-                        <t t-set="now" t-value="datetime.datetime.now() + datetime.timedelta(hours=7)"/>
-                        <t t-esc="now.strftime('%d/%m/%Y %H:%M:%S')"/>
-                    </span>
-                </td>
-            </tr>
-        </xpath>
+            <!-- Mengganti tabel tanda tangan (table[2]) -->
+            <xpath expr="//table[2]" position="replace">
+                <table style="width: 80%; margin: 0 auto; border-collapse: collapse; border: 1px solid black;" class="small-font">
+                    <thead>
+                        <tr>
+                            <th style="width: 33.33%; border-left: 1px solid black; border-right: 1px solid black; border-bottom: 1px solid black; text-align: center; padding: 4px;">Pengirim</th>
+                            <th style="width: 33.33%; border-left: 1px solid black; border-right: 1px solid black; border-bottom: 1px solid black; text-align: center; padding: 4px;">Driver</th>
+                            <th style="width: 33.33%; border-left: 1px solid black; border-right: 1px solid black; border-bottom: 1px solid black; text-align: center; padding: 4px;">Penerima</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <!-- Kolom Pengirim -->
+                            <td style="border-left: 1px solid black; border-right: 1px solid black; text-align: center; padding: 8px 4px; vertical-align: top;">
+                                <div>Ttd Digital</div>
+                                <div><span t-esc="o.sender_approved or ''"/></div>
+                                <div>
+                                    <t t-if="o.date_sender_approved">
+                                        <span t-esc="(o.date_sender_approved + datetime.timedelta(hours=7)).strftime('%d/%m/%Y %H:%M:%S')"/>
+                                    </t>
+                                </div>
+                            </td>
+
+                            <!-- Kolom Driver -->
+                            <td style="border-left: 1px solid black; border-right: 1px solid black; text-align: center; padding: 8px 4px; vertical-align: top;">
+                                <div>Ttd Digital</div>
+                                <div><span t-esc="o.driver_approved or ''"/></div>
+                                <div>
+                                    <t t-if="o.date_driver_approved">
+                                        <span t-esc="o.date_driver_approved"/>
+                                    </t>
+                                </div>
+                            </td>
+
+                            <!-- Kolom Penerima -->
+                            <td style="border-left: 1px solid black; border-right: 1px solid black; text-align: center; padding: 8px 4px; vertical-align: top;">
+                                <div>Ttd Digital</div>
+                                <div><span t-esc="o.receiver_approved or ''"/></div>
+                                <div>
+                                    <t t-if="o.date_receiver_approved">
+                                        <span t-esc="o.date_receiver_approved"/>
+                                    </t>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </xpath>
+
+            <!-- Bagian pembuat dokumen -->
+            <xpath expr="//table[3]//tr[1]" position="replace">
+                <tr>
+                    <td style="width:100%;" align="right">
+                        <span class="small-font">
+                            Dibuat: 
+                            <t t-if="o.user_id">
+                                <t t-esc="o.user_id.name"/>
+                            </t>
+                            <t t-else="">
+                                <t t-esc="o.write_uid.name"/>
+                            </t> 
+                            | 
+                            <t t-set="now" t-value="datetime.datetime.now() + datetime.timedelta(hours=7)"/>
+                            <t t-esc="now.strftime('%d/%m/%Y %H:%M:%S')"/>
+                        </span>
+                    </td>
+                </tr>
+            </xpath>
 
         </template>
     </data>
