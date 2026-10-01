@@ -49,3 +49,9 @@ class SPicking(models.Model):
 			x.sender_approved = x.env.user.name
 			x.date_sender_approved = fields.Datetime.now()
 		return res
+
+	def receive_do(self):
+		res = super(SPicking, self).receive_do()
+		for x in self:
+			x.date_receiver_approved = fields.Datetime.now()
+		return res
