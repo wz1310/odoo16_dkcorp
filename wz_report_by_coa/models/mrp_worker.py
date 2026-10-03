@@ -141,7 +141,7 @@ class MrpProduction(models.Model):
 		for move in service_moves:
 			# move.product_id.standard_price = sum([x.wage for x in self.worker_line_ids])
 			# move.cost = (sum([x.wage for x in self.worker_line_ids]) / total_so_qty) * self.qty_producing if total_so_qty else 0.0
-			move.cost = (sum([x.wage for x in self.worker_line_ids])) / self.qty_producing if total_so_qty else 0.0
+			move.cost = (sum([x.wage for x in self.worker_line_ids]))
 
 	# def write(self, vals):
 	#     res = super(MrpProduction, self).write(vals)
@@ -162,7 +162,7 @@ class MrpProduction(models.Model):
 		for mo in self:
 			total_so_qty = sum(mo.sale_order_ids.mapped('order_line.product_uom_qty'))
 			# total_wage = (sum(mo.worker_line_ids.mapped('wage')) / total_so_qty) * mo.qty_producing if total_so_qty else 0.0
-			total_wage = (sum(mo.worker_line_ids.mapped('wage'))) / mo.qty_producing if total_so_qty else 0.0
+			total_wage = (sum(mo.worker_line_ids.mapped('wage')))
 			service_moves = mo.move_raw_ids.filtered(lambda m: m.product_id.type == 'service' and m.product_id.worker)
 			
 			if service_moves:
@@ -180,7 +180,7 @@ class MrpProduction(models.Model):
 		for mo in self:
 			total_so_qty = sum(mo.sale_order_ids.mapped('order_line.product_uom_qty'))
 			# total_wage = (sum(mo.worker_line_ids.mapped('wage')) / total_so_qty) * mo.qty_producing if total_so_qty else 0.0
-			total_wage = (sum(mo.worker_line_ids.mapped('wage'))) / mo.qty_producing if total_so_qty else 0.0
+			total_wage = (sum(mo.worker_line_ids.mapped('wage')))
 			service_moves = mo.move_raw_ids.filtered(lambda m: m.product_id.type == 'service' and m.product_id.worker)
 			if service_moves:
 				service_moves.sudo().write({'cost': total_wage})
