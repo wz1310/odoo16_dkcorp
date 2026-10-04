@@ -16,8 +16,8 @@
 
             <!-- Pastikan field cek_leader dipanggil dulu di view agar nilainya bisa dibaca XML -->
             <xpath expr="//field[@name='company_id']" position="after">
-                <field name="cek_leader" invisible="0"/>
-                <field name="cek_user_mo" invisible="0"/>
+                <field name="cek_leader" invisible="1"/>
+                <field name="cek_user_mo" invisible="1"/>
             </xpath>
 
             <!-- Menambahkan kondisi attrs invisible pada group pertama -->
