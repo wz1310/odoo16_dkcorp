@@ -13,6 +13,7 @@
         'views/mrp_worker_views.xml',
         'views/coa_view.xml',
         'views/batch_view.xml',
+        'views/finished_goods_result_views.xml',
     ],
     'installable': True,
     'auto_install': False,

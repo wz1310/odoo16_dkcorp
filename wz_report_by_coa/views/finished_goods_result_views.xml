@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Sequence Data -->
+    <data noupdate="1">
+        <record id="seq_finished_goods_result" model="ir.sequence">
+            <field name="name">Finished Goods Result Sequence</field>
+            <field name="code">finished.goods.result</field>
+            <field name="prefix">FGR/%(year)s/%(month)s/</field>
+            <field name="padding">5</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </data>
+
+    <!-- Tree View FGR -->
+    <record id="view_finished_goods_result_tree" model="ir.ui.view">
+        <field name="name">finished.goods.result.tree</field>
+        <field name="model">finished.goods.result</field>
+        <field name="arch" type="xml">
+            <tree string="Finished Goods Result">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="product_id"/>
+                <field name="qty_result"/>
+                <field name="production_id"/>
+                <field name="state" widget="badge" decoration-info="state == 'draft'" decoration-success="state == 'done'" decoration-danger="state == 'cancel'"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Form View FGR -->
+    <record id="view_finished_goods_result_form" model="ir.ui.view">
+        <field name="name">finished.goods.result.form</field>
+        <field name="model">finished.goods.result</field>
+        <field name="arch" type="xml">
+            <form string="Finished Goods Result">
+                <header>
+                    <button name="action_validate" string="Validate" type="object" class="oe_highlight" states="draft"/>
+                    <button name="action_sync_qty_to_mo" string="Sync to MO" type="object" class="btn-primary" attrs="{'invisible': [('production_id', '=', False)]}"/>
+                    <button name="action_draft" string="Set to Draft" type="object" states="cancel"/>
+                    <button name="action_cancel" string="Cancel" type="object" states="draft,done"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_mo" type="object" class="oe_stat_button" icon="fa-wrench" attrs="{'invisible': [('production_id', '=', False)]}">
+                            <div class="o_field_widget o_stat_info">
+                                <span class="o_stat_text">MO</span>
+                            </div>
+                        </button>
+                    </div>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="product_id" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="qty_result" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                        </group>
+                        <group>
+                            <field name="date" attrs="{'readonly': [('state', '!=', 'draft')]}"/>
+                            <field name="production_id" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action FGR -->
+    <record id="action_finished_goods_result" model="ir.actions.act_window">
+        <field name="name">Finished Goods Result</field>
+        <field name="res_model">finished.goods.result</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Menuitem FGR -->
+    <menuitem id="menu_finished_goods_result"
+              name="Finished Goods Result"
+              parent="mrp.menu_mrp_manufacturing"
+              action="action_finished_goods_result"
+              sequence="25"/>
+
+    <!-- Inherit Form MO -->
+    <record id="mrp_production_form_view_inherit_fgr" model="ir.ui.view">
+        <field name="name">mrp.production.form.view.inherit.fgr</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+        <field name="arch" type="xml">
+            <!-- Header Button Create FGR -->
+            <xpath expr="//header" position="inside">
+                <button name="action_create_fgr" 
+                        string="Create FGR" 
+                        type="object" 
+                        class="oe_highlight" 
+                        attrs="{'invisible': ['|', ('fgr_count', '>', 0), ('state', 'in', ('draft', 'cancel'))]}"/>
+                <button name="action_sync_from_fgr" 
+                        string="Sync with FGR" 
+                        type="object" 
+                        class="btn-secondary" 
+                        attrs="{'invisible': [('fgr_count', '=', 0)]}"/>
+            </xpath>
+
+            <!-- Smart Button FGR -->
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button name="action_view_fgr" type="object" class="oe_stat_button" icon="fa-list-alt" attrs="{'invisible': [('fgr_count', '=', 0)]}">
+                    <div class="o_field_widget o_stat_info">
+                        <field name="fgr_count" widget="statinfo" string="FGR"/>
+                    </div>
+                </button>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Inherit Product Category Form View -->
+    <record id="product_category_form_view_inherit_fgr" model="ir.ui.view">
+        <field name="name">product.category.form.view.inherit.fgr</field>
+        <field name="model">product.category</field>
+        <field name="inherit_id" ref="product.product_category_form_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='parent_id']" position="after">
+                <field name="is_finish_good"/>
+            </xpath>
+        </field>
+    </record>
+
+</odoo>

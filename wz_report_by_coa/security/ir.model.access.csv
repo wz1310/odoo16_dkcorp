@@ -7,3 +7,4 @@ access_sale_order_worker_line,sale.order.worker.line,model_sale_order_worker_lin
 access_sale_order_batch,sale.order.batch,model_sale_order_batch,base.group_user,1,1,1,1
 access_sale_order_assign_worker_wizard,sale.order.assign.worker.wizard,model_sale_order_assign_worker_wizard,base.group_user,1,1,1,1
 access_sale_order_assign_worker_wizard_line,sale.order.assign.worker.wizard.line,model_sale_order_assign_worker_wizard_line,base.group_user,1,1,1,1
+access_finished_goods_result_user,finished.goods.result.user,model_finished_goods_result,mrp.group_mrp_user,1,1,1,1
