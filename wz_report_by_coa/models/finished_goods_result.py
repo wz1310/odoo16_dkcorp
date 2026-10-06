@@ -124,6 +124,7 @@ class MrpProduction(models.Model):
 			raise UserError(_('Produk %s ditolak sinkronisasi karena menggunakan tracking Serial Number (Qty tidak boleh lebih dari 1).') % self.product_id.display_name)
 			
 		self.qty_producing = fgr.qty_result
+		self._onchangex_products_qty()
 
 	def action_view_fgr(self):
 		self.ensure_one()
