@@ -9,7 +9,7 @@ class SPicking(models.Model):
 
 	user_so = fields.Boolean(compute="_cek_user_so",default=False)
 	real_driver = fields.Boolean(compute="_cek_driver",default=False)
-	driver = fields.Many2one('res.users', string='Driver',domain="[('groups_id', 'in', [ref('wz_report_by_coa.group_driver')])]")
+	driver = fields.Many2one('res.users', string='Driver')
 	# driver = fields.Many2one('res.users', string='Driver',domain=lambda self: [('groups_id', 'in', [self.env.ref('wz_report_by_coa.group_driver').id])])
 	driver_approved = fields.Char(string="Approved by Driver")
 	cek_driver_approved = fields.Boolean()
