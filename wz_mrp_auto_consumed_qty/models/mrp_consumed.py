@@ -88,6 +88,8 @@ class MrpProduction(models.Model):
         self.env.invalidate_all()
         confirmed_mos._onchanges_products_id()
         confirmed_mos._change_rill_costs()
+        if confirmed_mos.product_id.categ_id.is_finish_good == True:
+            confirmed_mos.action_create_fgr()
         return res
 
 class InheritSmove(models.Model):
