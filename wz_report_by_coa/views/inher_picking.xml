@@ -38,9 +38,9 @@
             <xpath expr="//button[@name='receive_do']" position="after">
                 <button string="Driver Approval" name="button_driver_approved" type="object" class="btn-primary" attrs="{'invisible': [('cek_driver_approved', '=', True)]}"/>
             </xpath>
-            <xpath expr="//page[@name='image_upload']" position="attributes">
+            <!-- <xpath expr="//page[@name='image_upload']" position="attributes">
                 <attribute name="attrs">{'invisible': [('real_driver', '=', False)]}</attribute>
-            </xpath>
+            </xpath> -->
 
         </field>
     </record>

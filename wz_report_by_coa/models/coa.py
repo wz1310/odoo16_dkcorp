@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, _
 from odoo.tools import float_compare, float_round, float_is_zero, format_datetime
+from odoo.exceptions import ValidationError,UserError
+
 
 class WzAccount(models.Model):
 	_inherit = 'account.account'
@@ -278,6 +280,12 @@ class StockMove(models.Model):
 
 class MrpProduction(models.Model):
 	_inherit = 'mrp.production'
+
+	@api.onchange('batch_id')
+	def onchange_batch(self):
+		for x in self:
+			if not x.product_id.categ_id.is_finish_good:
+				raise UserError(_("Batch hanya diisi untuk produk jadi / finish good "))
 
 	def _get_consumption_issues(self):
 		print("jallllllllllllllllllllllll")
