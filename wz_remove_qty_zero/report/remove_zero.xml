@@ -36,7 +36,8 @@
                                 <div><span t-esc="o.driver_approved or ''"/></div>
                                 <div>
                                     <t t-if="o.date_driver_approved">
-                                        <span t-esc="o.date_driver_approved"/>
+                                        <!-- <span t-esc="o.date_driver_approved"/> -->
+                                        <span t-esc="(o.date_driver_approved + datetime.timedelta(hours=7)).strftime('%d/%m/%Y %H:%M:%S')"/>
                                     </t>
                                 </div>
                             </td>
@@ -47,7 +48,8 @@
                                 <div><span t-esc="o.receiver_approved or ''"/></div>
                                 <div>
                                     <t t-if="o.date_receiver_approved">
-                                        <span t-esc="o.date_receiver_approved"/>
+                                        <!-- <span t-esc="o.date_receiver_approved"/> -->
+                                        <span t-esc="(o.date_receiver_approved + datetime.timedelta(hours=7)).strftime('%d/%m/%Y %H:%M:%S')"/>
                                     </t>
                                 </div>
                             </td>
