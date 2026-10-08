@@ -89,30 +89,51 @@ class MrpProduction(models.Model):
 		for record in self:
 			record.fgr_count = len(record.fgr_ids)
 
-	def action_create_fgr(self):
-		self.ensure_one()
+	# def action_create_fgr(self):
+	# 	self.ensure_one()
 		
-		# Validasi kuantitas jika tracking berupa Unique Serial Number
-		if self.product_id.categ_id.is_finish_good == False:
-			raise UserError(_('Produk bukan finish good'))
-		initial_qty = self.qty_producing or self.product_qty
-		if self.product_id.tracking == 'serial' and initial_qty > 1.0:
-			initial_qty = 1.0
+	# 	# Validasi kuantitas jika tracking berupa Unique Serial Number
+	# 	if self.product_id.categ_id.is_finish_good == False:
+	# 		raise UserError(_('Produk bukan finish good'))
+	# 	initial_qty = self.qty_producing or self.product_qty
+	# 	if self.product_id.tracking == 'serial' and initial_qty > 1.0:
+	# 		initial_qty = 1.0
 
-		fgr_val = {
-			'production_id': self.id,
-			'product_id': self.product_id.id,
-			'qty_result': initial_qty,
-			'date': self.date_planned_start and self.date_planned_start.date() or fields.Date.today(),
-		}
-		fgr = self.env['finished.goods.result'].create(fgr_val)
-		return {
-			'name': _('Finished Goods Result'),
-			'type': 'ir.actions.act_window',
-			'res_model': 'finished.goods.result',
-			'view_mode': 'form',
-			'res_id': fgr.id,
-		}
+	# 	fgr_val = {
+	# 		'production_id': self.id,
+	# 		'product_id': self.product_id.id,
+	# 		'qty_result': initial_qty,
+	# 		'date': self.date_planned_start and self.date_planned_start.date() or fields.Date.today(),
+	# 	}
+	# 	fgr = self.env['finished.goods.result'].create(fgr_val)
+	# 	return {
+	# 		'name': _('Finished Goods Result'),
+	# 		'type': 'ir.actions.act_window',
+	# 		'res_model': 'finished.goods.result',
+	# 		'view_mode': 'form',
+	# 		'res_id': fgr.id,
+	# 	}
+
+	def action_create_fgr(self):
+		# Loop seluruh record dalam recordset agar aman untuk proses batch / multi-record
+		for mo in self:
+			if not mo.product_id.categ_id.is_finish_good:
+				continue
+
+			initial_qty = mo.qty_producing or mo.product_qty
+			if mo.product_id.tracking == 'serial' and initial_qty > 1.0:
+				initial_qty = 1.0
+
+			fgr_val = {
+				'production_id': mo.id,
+				'product_id': mo.product_id.id,
+				'qty_result': initial_qty,
+				'date': mo.date_planned_start and mo.date_planned_start.date() or fields.Date.today(),
+			}
+			self.env['finished.goods.result'].create(fgr_val)
+
+		# Return True/None jika dijalankan secara otomatis dari backend/scheduler
+		return True
 
 	def action_sync_from_fgr(self):
 		self.ensure_one()
