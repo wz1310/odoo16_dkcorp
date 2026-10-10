@@ -284,7 +284,7 @@ class MrpProduction(models.Model):
 	@api.onchange('batch_id')
 	def onchange_batch(self):
 		for x in self:
-			if not x.product_id.categ_id.is_finish_good:
+			if not x.product_id.categ_id.is_finish_good and x.batch_id:
 				raise UserError(_("Batch hanya diisi untuk produk jadi / finish good "))
 
 	def _get_consumption_issues(self):
