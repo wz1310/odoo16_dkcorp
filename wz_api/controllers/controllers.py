@@ -27,10 +27,14 @@ class ScheduleTele(models.Model):
 			return # Keluar jika konfigurasi belum diset
 		
 		# Format Tanggal & Waktu pemesanan (menggunakan waktu lokal / create_date atau date_order)
-		order_date = self.date_order.strftime('%Y-%m-%d %H:%M:%S') if self.date_order else '-'
+		order_date = self.date_order.strftime('%d-%m-%Y') if self.date_order else '-'
+		order_time = self.date_order.strftime('%H:%M:%S') if self.date_order else '-'
 		
 		# Mengambil nama user yang melakukan konfirmasi / user yang sedang login saat ini
 		user_name = self.env.user.name or '-'
+
+		# Mengambil nama-nama tag/kategori dari partner (category_id adalah field many2many)
+		partner_tags = ", ".join(self.partner_id.category_id.mapped('name')) if self.partner_id.category_id else '-'
 
 		# Menyusun baris detail produk
 		product_lines = ""
@@ -43,9 +47,10 @@ class ScheduleTele(models.Model):
 
 		# Menyusun teks pesan (menggunakan format teks Telegram / Markdown)
 		message_text = (
-			f"<b>Sale Order: {self.name}</b>\n"
-			f"{order_date}\n"
+			f"<b>Sale Order: {partner_tags}</b>\n"
+			f"Tanggal {order_date} jam {order_time}\n"
 			f"Dibuat Oleh: {user_name}\n\n"
+			f"{self.name} | {self.partner_id.name}\n"
 			f"<b>Detail Order</b>\n"
 			f"================\n"
 			f"{product_lines}"
