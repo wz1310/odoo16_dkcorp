@@ -1,6 +1,7 @@
 import datetime
 import json
 import requests
+import pytz  # <-- Tambahkan import pytz untuk konversi zona waktu
 from odoo import models, fields, api, _
 
 class ScheduleTele(models.Model):
@@ -26,9 +27,21 @@ class ScheduleTele(models.Model):
 		if not url_tele or not chatid_number:
 			return # Keluar jika konfigurasi belum diset
 		
-		# Format Tanggal & Waktu pemesanan (menggunakan waktu lokal / create_date atau date_order)
-		order_date = self.date_order.strftime('%d-%m-%Y') if self.date_order else '-'
-		order_time = self.date_order.strftime('%H:%M:%S') if self.date_order else '-'
+		# Mengatur zona waktu ke WIB (Asia/Jakarta)
+		# Jika ingin otomatis mengikuti zona waktu user yang sedang login, bisa pakai: self.env.user.tz or 'Asia/Jakarta'
+		user_tz = pytz.timezone('Asia/Jakarta')
+		
+		if self.date_order:
+			# Odoo menyimpan date_order dalam bentuk UTC (naive datetime)
+			utc_dt = pytz.utc.localize(self.date_order)
+			# Konversi ke waktu lokal Indonesia (WIB)
+			local_dt = utc_dt.astimezone(user_tz)
+			
+			order_date = local_dt.strftime('%d-%m-%Y')
+			order_time = local_dt.strftime('%H:%M:%S')
+		else:
+			order_date = '-'
+			order_time = '-'
 		
 		# Mengambil nama user yang melakukan konfirmasi / user yang sedang login saat ini
 		user_name = self.env.user.name or '-'
@@ -48,7 +61,7 @@ class ScheduleTele(models.Model):
 		# Menyusun teks pesan (menggunakan format teks Telegram / Markdown)
 		message_text = (
 			f"<b>Sale Order: {partner_tags}</b>\n"
-			f"Tanggal {order_date} jam {order_time}\n"
+			f"Tanggal {order_date} jam {order_time} WIB\n"  # Ditambahkan keterangan WIB
 			f"Dibuat Oleh: {user_name}\n\n"
 			f"{self.name} | {self.partner_id.name}\n"
 			f"<b>Detail Order</b>\n"
@@ -67,7 +80,7 @@ class ScheduleTele(models.Model):
 		
 		try:
 			response = requests.post(url_tele, headers=headers, data=payload, timeout=10)
-			print("response",response)
+			print("response", response)
 			response.raise_for_status()
 		except Exception as e:
 			# Anda bisa menambahkan logging error jika diperlukan
