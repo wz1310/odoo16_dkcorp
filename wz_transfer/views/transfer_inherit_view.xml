@@ -17,11 +17,40 @@
         <field name="model">stock.picking</field>
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                <button name="action_open_transfer_driver_wizard" 
+                        string="TRANSFER DRIVER" 
+                        type="object" 
+                        class="oe_highlight"/>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="date_approved_by_other_driver" readonly="1"/>
+            </xpath>
             <xpath expr="//field[@name='backorder_id']" position="after">
-                <field name="driver_pengganti"/>
+                <field name="driver_pengganti" readonly="1"/>
                 <!-- <field name="send_by_so" readonly="1" force_save="True"/> -->
                 <field name="send_by_so"/>
             </xpath>
+        </field>
+    </record>
+
+    <!-- Form View Wizard Transfer Driver (Popup) -->
+    <record id="view_transfer_driver_wizard_form" model="ir.ui.view">
+        <field name="name">transfer.driver.wizard.form</field>
+        <field name="model">transfer.driver.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Transfer Driver">
+                <sheet>
+                    <group>
+                        <field name="picking_id" invisible="1"/>
+                        <field name="driver_pengganti_id" options="{'no_create': True, 'no_open': True}"/>
+                    </group>
+                </sheet>
+                <footer>
+                    <button name="action_confirm_transfer" string="Validasi" type="object" class="btn-primary"/>
+                    <button string="Batal" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
         </field>
     </record>
 

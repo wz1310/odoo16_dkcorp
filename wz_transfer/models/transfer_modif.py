@@ -20,11 +20,11 @@ class SalesInherit(models.Model):
 		string='Opsi Pengiriman')
 
 
-
 class PickInherit(models.Model):
 	_inherit = 'stock.picking'
 
-	driver_pengganti = fields.Many2one('res.users',string="Driver Pengganti")
+	driver_pengganti = fields.Many2one('res.users', string="Driver Pengganti")
+	date_approved_by_other_driver = fields.Datetime(string="Date Approved By Other Driver")
 	send_by_so = fields.Selection(
 		[('grab', 'Grab'),
 		 ('gojek', 'Gojek'),
@@ -35,6 +35,20 @@ class PickInherit(models.Model):
 		 ('lainnya', 'Lainnya'),
 		 ],
 		string='Opsi Pengiriman')
+
+	def action_open_transfer_driver_wizard(self):
+		self.ensure_one()
+		return {
+			'name': _('Transfer Driver'),
+			'type': 'ir.actions.act_window',
+			'res_model': 'transfer.driver.wizard',
+			'view_mode': 'form',
+			'target': 'new',
+			'context': {
+				'default_picking_id': self.id,
+				'default_driver_pengganti_id': self.driver_pengganti.id,
+			}
+		}
 
 
 class UrgentDelivery(models.Model):
@@ -104,3 +118,32 @@ class UrgentDelivery(models.Model):
 	def action_set_to_draft(self):
 		for record in self:
 			record.state = 'draft'
+
+
+class TransferDriverWizard(models.TransientModel):
+	_name = 'transfer.driver.wizard'
+	_description = 'Transfer Driver Wizard'
+
+	picking_id = fields.Many2one('stock.picking', string="Stock Picking", required=True)
+	driver_pengganti_id = fields.Many2one(
+		'res.users', 
+		string="Driver Pengganti", 
+		domain=lambda self: self._get_driver_domain(),
+		required=True
+	)
+
+	@api.model
+	def _get_driver_domain(self):
+		group = self.env.ref('wz_report_by_coa.group_driver', raise_if_not_found=False)
+		if group:
+			return [('id', 'in', group.users.ids)]
+		return []
+
+	def action_confirm_transfer(self):
+		self.ensure_one()
+		if self.picking_id:
+			self.picking_id.write({
+				'driver_pengganti': self.driver_pengganti_id.id,
+				'date_approved_by_other_driver': fields.Datetime.now(),
+			})
+		return {'type': 'ir.actions.act_window_close'}

@@ -2,25 +2,28 @@
     <data>
         <template id="report_delivery_document_inherit" inherit_id="mstl_report.report_delivery_document">
             
-            <!-- Mengubah loop move_ids -->
+            <!-- Mengubah loop move_ids agar aman jika quantity_done kosong -->
             <xpath expr="//t[@t-foreach='o.move_ids']" position="attributes">
-                <attribute name="t-foreach">o.move_ids.filtered(lambda l: l.quantity_done != 0)</attribute>
+                <attribute name="t-foreach">o.move_ids.filtered(lambda l: l.quantity_done != 0) if any(l.quantity_done != 0 for l in o.move_ids) else o.move_ids</attribute>
             </xpath>
 
-            <!-- Mengganti tabel tanda tangan (table[2]) -->
+            <!-- Mengganti tabel tanda tangan (table[2]) dengan garis pembatas lengkap di setiap th dan td -->
             <xpath expr="//table[2]" position="replace">
-                <table style="width: 80%; margin: 0 auto; border-collapse: collapse; border: 1px solid black;" class="small-font">
+                <table style="width: 80%; margin: 0 auto; border-collapse: collapse; border: 1px solid black !important;" class="small-font">
                     <thead>
-                        <tr>
-                            <th style="width: 33.33%; border-left: 1px solid black; border-right: 1px solid black; border-bottom: 1px solid black; text-align: center; padding: 4px;">Pengirim</th>
-                            <th style="width: 33.33%; border-left: 1px solid black; border-right: 1px solid black; border-bottom: 1px solid black; text-align: center; padding: 4px;">Driver</th>
-                            <th style="width: 33.33%; border-left: 1px solid black; border-right: 1px solid black; border-bottom: 1px solid black; text-align: center; padding: 4px;">Penerima</th>
+                        <tr style="border: 1px solid black !important;">
+                            <th t-att-style="o.driver_pengganti and 'width: 25%;' or 'width: 33.33%;'" style="border-top: 1px solid black !important; borde r-bottom: 1px solid black !important; border-left: 1px solid black !important; border-right: 1px solid black !important; text-align: center; padding: 4px; background-color: #f8f9fa;">Pengirim</th>
+                            <th t-att-style="o.driver_pengganti and 'width: 25%;' or 'width: 33.33%;'" style="border-top: 1px solid black !important; border-bottom: 1px solid black !important; border-left: 1px solid black !important; border-right: 1px solid black !important; text-align: center; padding: 4px; background-color: #f8f9fa;">Driver</th>
+                            <t t-if="o.driver_pengganti">
+                                <th style="width: 25%; border-top: 1px solid black !important; border-bottom: 1px solid black !important; border-left: 1px solid black !important; border-right: 1px solid black !important; text-align: center; padding: 4px; background-color: #f8f9fa;">Driver Pengganti</th>
+                            </t>
+                            <th t-att-style="o.driver_pengganti and 'width: 25%;' or 'width: 33.33%;'" style="border-top: 1px solid black !important; border-bottom: 1px solid black !important; border-left: 1px solid black !important; border-right: 1px solid black !important; text-align: center; padding: 4px; background-color: #f8f9fa;">Penerima</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
+                        <tr style="border: 1px solid black !important;">
                             <!-- Kolom Pengirim -->
-                            <td style="border-left: 1px solid black; border-right: 1px solid black; text-align: center; padding: 8px 4px; vertical-align: top;">
+                            <td style="border-top: 1px solid black !important; border-bottom: 1px solid black !important; border-left: 1px solid black !important; border-right: 1px solid black !important; text-align: center; padding: 8px 4px; vertical-align: top;">
                                 <div>Ttd Digital</div>
                                 <div><span t-esc="o.sender_approved or ''"/></div>
                                 <div>
@@ -31,24 +34,35 @@
                             </td>
 
                             <!-- Kolom Driver -->
-                            <td style="border-left: 1px solid black; border-right: 1px solid black; text-align: center; padding: 8px 4px; vertical-align: top;">
+                            <td style="border-top: 1px solid black !important; border-bottom: 1px solid black !important; border-left: 1px solid black !important; border-right: 1px solid black !important; text-align: center; padding: 8px 4px; vertical-align: top;">
                                 <div>Ttd Digital</div>
                                 <div><span t-esc="o.driver_approved or ''"/></div>
                                 <div>
                                     <t t-if="o.date_driver_approved">
-                                        <!-- <span t-esc="o.date_driver_approved"/> -->
                                         <span t-esc="(o.date_driver_approved + datetime.timedelta(hours=7)).strftime('%d/%m/%Y %H:%M:%S')"/>
                                     </t>
                                 </div>
                             </td>
 
+                            <!-- Kolom Driver Pengganti (Hanya tampil jika ada isinya) -->
+                            <t t-if="o.driver_pengganti">
+                                <td style="border-top: 1px solid black !important; border-bottom: 1px solid black !important; border-left: 1px solid black !important; border-right: 1px solid black !important; text-align: center; padding: 8px 4px; vertical-align: top;">
+                                    <div>Ttd Digital</div>
+                                    <div><span t-esc="o.driver_pengganti.name or ''"/></div>
+                                    <div>
+                                        <t t-if="o.date_approved_by_other_driver">
+                                            <span t-esc="(o.date_approved_by_other_driver + datetime.timedelta(hours=7)).strftime('%d/%m/%Y %H:%M:%S')"/>
+                                        </t>
+                                    </div>
+                                </td>
+                            </t>
+
                             <!-- Kolom Penerima -->
-                            <td style="border-left: 1px solid black; border-right: 1px solid black; text-align: center; padding: 8px 4px; vertical-align: top;">
+                            <td style="border-top: 1px solid black !important; border-bottom: 1px solid black !important; border-left: 1px solid black !important; border-right: 1px solid black !important; text-align: center; padding: 8px 4px; vertical-align: top;">
                                 <div>Ttd Digital</div>
                                 <div><span t-esc="o.receiver_approved or ''"/></div>
                                 <div>
                                     <t t-if="o.date_receiver_approved">
-                                        <!-- <span t-esc="o.date_receiver_approved"/> -->
                                         <span t-esc="(o.date_receiver_approved + datetime.timedelta(hours=7)).strftime('%d/%m/%Y %H:%M:%S')"/>
                                     </t>
                                 </div>
@@ -58,7 +72,7 @@
                 </table>
             </xpath>
 
-            <!-- Bagian pembuat dokumen -->
+            <!-- Bagian pembuat dokumen & info Urgent DO di bawahnya dengan huruf miring -->
             <xpath expr="//table[3]//tr[1]" position="replace">
                 <tr>
                     <td style="width:100%;" align="right">
@@ -74,6 +88,15 @@
                             <t t-set="now" t-value="datetime.datetime.now() + datetime.timedelta(hours=7)"/>
                             <t t-esc="now.strftime('%d/%m/%Y %H:%M:%S')"/>
                         </span>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <t t-if="o.send_by_so">
+                            <span style="font-style: italic; color: #555555;">
+                                Urgent DO via <span t-esc="dict(o._fields['send_by_so'].selection).get(o.send_by_so, '')"/>
+                            </span>
+                        </t>                        
                     </td>
                 </tr>
             </xpath>
