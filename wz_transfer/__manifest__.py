@@ -6,7 +6,7 @@
     'description': """Inherit Sale""",
     'depends': ['sale'],
     'data': [
-        'views/sale_inherit_view.xml'
+        'views/transfer_inherit_view.xml'
     ],
     'installable': True,
     'auto_install': False,

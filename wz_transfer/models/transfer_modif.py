@@ -19,3 +19,20 @@ class SalesInherit(models.Model):
          ('lainnya', 'Lainnya'),
          ],
         string='Opsi Pengiriman')
+
+
+
+class PickInherit(models.Model):
+    _inherit = 'stock.picking'
+
+    send_by_so = fields.Selection(
+        [('grab', 'Grab'),
+         ('gojek', 'Gojek'),
+         ('lala_move', 'Lala Move'),
+         ('si_cepat', 'Sicepat'),
+         ('jnt', 'JNT'),
+         ('jne', 'JNE'),
+         ('lainnya', 'Lainnya'),
+         ],
+        string='Opsi Pengiriman')
+
