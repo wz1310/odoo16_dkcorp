@@ -23,6 +23,7 @@ class InheritConfirmDateWizard(models.TransientModel):
                 picking.receiver_approved = self.env.user.name
                 # picking.date_receiver_approved = fields.Datetime.now()
                 picking.partner_id = sale_obj.partner_id.id
+                picking.send_by_so = sale_obj.send_by
                 picking.cek_matrix()
                 picking.approval_ids._send_notification()
             if not sale_obj.commitment_date:
@@ -42,5 +43,6 @@ class InheritConfirmDateWizard(models.TransientModel):
                 picking.receiver_approved = self.env.user.name
                 # picking.date_receiver_approved = fields.Datetime.now()
                 picking.partner_id = sale_obj.partner_id.id
+                picking.send_by_so = sale_obj.send_by
                 picking.cek_matrix()
                 picking.approval_ids._send_notification()

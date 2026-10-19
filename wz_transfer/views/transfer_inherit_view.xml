@@ -6,7 +6,8 @@
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_id']" position="after">
-                <field name="send_by" readonly="1" force_save="True"/>
+                <!-- <field name="send_by" readonly="1" force_save="True"/> -->
+                <field name="send_by"/>
             </xpath>
         </field>
     </record>
@@ -19,7 +20,8 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='backorder_id']" position="after">
                 <field name="driver_pengganti"/>
-                <field name="send_by_so" readonly="1" force_save="True"/>
+                <!-- <field name="send_by_so" readonly="1" force_save="True"/> -->
+                <field name="send_by_so"/>
             </xpath>
         </field>
     </record>
