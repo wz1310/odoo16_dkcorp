@@ -5,8 +5,21 @@
         <field name="model">sale.order</field>
         <field name="inherit_id" ref="sale.view_order_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='order_line']//tree//field[@name='product_uom_qty']" position="after">
-                <field name="est" string="Estimasi Qty" readonly="1" force_save="True"/>
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="send_by" readonly="1" force_save="True"/>
+            </xpath>
+        </field>
+    </record>
+
+
+    <record id="view_pick_inherits_form" model="ir.ui.view">
+        <field name="name">pick.forms</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='backorder_id']" position="after">
+                <field name="driver_pengganti"/>
+                <field name="send_by_so" readonly="1" force_save="True"/>
             </xpath>
         </field>
     </record>

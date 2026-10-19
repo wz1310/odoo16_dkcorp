@@ -7,8 +7,7 @@ _logger = logging.getLogger(__name__)
 
 class SalesInherit(models.Model):
     _inherit = 'sale.order'
-
-    driver_pengganti = fields.Many2one('res.users',string="Driver Pengganti")
+    
     send_by = fields.Selection(
         [('grab', 'Grab'),
          ('gojek', 'Gojek'),
@@ -25,6 +24,7 @@ class SalesInherit(models.Model):
 class PickInherit(models.Model):
     _inherit = 'stock.picking'
 
+    driver_pengganti = fields.Many2one('res.users',string="Driver Pengganti")
     send_by_so = fields.Selection(
         [('grab', 'Grab'),
          ('gojek', 'Gojek'),
