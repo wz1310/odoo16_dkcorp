@@ -25,4 +25,19 @@
             </xpath>
         </field>
     </record>
+
+
+    <record id="action_urgent_delivery" model="ir.actions.act_window">
+    <field name="name">Urgent Delivery</field>
+    <field name="res_model">urgent.delivery</field>
+    <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_urgent_delivery"
+          name="Urgent Delivery"
+          parent="sale.sale_order_menu"
+          action="action_urgent_delivery"
+          sequence="20"/>
+
+
 </odoo>

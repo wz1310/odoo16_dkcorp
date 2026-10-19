@@ -6,6 +6,7 @@
     'description': """Inherit Sale and Transfer""",
     'depends': ['sale'],
     'data': [
+        'security/ir.model.access.csv',
         'views/transfer_inherit_view.xml'
     ],
     'installable': True,
