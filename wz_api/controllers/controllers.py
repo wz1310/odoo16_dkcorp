@@ -9,13 +9,13 @@ class ScheduleTele(models.Model):
 	_inherit = 'sale.order'
 
 	# Override method write untuk mendeteksi perubahan status menjadi 'sale'
-	def write(self, vals):
-		res = super(ScheduleTele, self).write(vals)
-		# Cek apakah state berubah menjadi 'sale'
-		if vals.get('state') == 'sale':
-			for order in self:
-				order.send_tele()
-		return res
+	# def write(self, vals):
+	# 	res = super(ScheduleTele, self).write(vals)
+	# 	# Cek apakah state berubah menjadi 'sale'
+	# 	if vals.get('state') == 'sale':
+	# 		for order in self:
+	# 			order.send_tele()
+	# 	return res
 
 	def send_tele(self):
 		print("JALAN APIIIII")
