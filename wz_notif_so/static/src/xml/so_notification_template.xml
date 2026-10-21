@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+    <t t-name="SoNotificationTemplate">
+        <div class="o_so_floating_notification" style="display: none; position: fixed; top: 60px; right: 20px; z-index: 9999; background-color: #e3f2fd; border: 1px solid #90caf9; padding: 12px 20px; border-radius: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); font-family: sans-serif; max-width: 320px;">
+            <!-- Tombol X kecil di pojok kiri atas kotak -->
+            <span class="o_so_close_btn" style="position: absolute; top: 4px; left: 8px; cursor: pointer; font-weight: bold; font-size: 12px; color: #555;" title="Tutup">✕</span>
+            
+            <div style="margin-top: 8px; font-size: 13px; color: #0d47a1; text-align: center;">
+                Ada <span class="so-count-text" style="font-weight: bold;">0</span> jumlah so pending yang masih menunggu approval
+            </div>
+            <div style="text-align: center; margin-top: 8px;">
+                <button type="button" class="o_so_redirect_btn btn btn-sm btn-primary" style="font-size: 11px; padding: 2px 8px;">Lihat List SO</button>
+            </div>
+        </div>
+    </t>
+</templates>

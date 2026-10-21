@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_urgent_delivery_user,urgent.delivery.user,model_urgent_delivery,,1,1,1,1
+access_transfer_driver_wizard_user,transfer.driver.wizard.user,model_transfer_driver_wizard,,1,1,1,1

@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="notif_sale_form" model="ir.ui.view">
+        <field name="name">notif.sale.forms</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+            <!-- Menambahkan tombol di bagian header form sale.order khusus grup Manager Notif SO -->
+            <xpath expr="//header" position="inside">
+                <button name="action_manager_approve" 
+                        string="Approve Manager" 
+                        type="object" 
+                        class="oe_highlight" 
+                        groups="wz_notif_so.group_sale_manager_notif"
+                        attrs="{'invisible': ['|',('manager_approved', '=', True),('state', '!=', 'sale')]}"/>
+            </xpath>
+
+            <!-- Menampilkan field boolean di form view -->
+            <xpath expr="//field[@name='payment_term_id']" position="after">
+                <field name="manager_approved" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

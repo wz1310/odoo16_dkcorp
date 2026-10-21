@@ -1,0 +1,1 @@
+from . import notif_so

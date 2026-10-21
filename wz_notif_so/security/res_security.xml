@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="group_sale_manager_notif" model="res.groups">
+        <field name="name">Manager Notif SO</field>
+        <field name="category_id" ref="base.module_category_sales_management"/>
+        <field name="comment">Grup khusus untuk melihat notifikasi floating approval SO.</field>
+    </record>
+</odoo>
