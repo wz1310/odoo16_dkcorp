@@ -12,12 +12,12 @@
                 <table style="width: 80%; margin: 0 auto; border-collapse: collapse; border: 1px solid black !important;" class="small-font">
                     <thead>
                         <tr style="border: 1px solid black !important;">
-                            <th t-att-style="o.driver_pengganti and 'width: 25%;' or 'width: 33.33%;'" style="border-top: 1px solid black !important; borde r-bottom: 1px solid black !important; border-left: 1px solid black !important; border-right: 1px solid black !important; text-align: center; padding: 4px; background-color: #f8f9fa;">Pengirim</th>
+                            <th style="border-top: 1px solid black !important; border-bottom: 1px solid black !important; border-left: 1px solid black !important; border-right: 1px solid black !important; text-align: center; padding: 4px; background-color: #f8f9fa;">Pengirim</th>
                             <th t-att-style="o.driver_pengganti and 'width: 25%;' or 'width: 33.33%;'" style="border-top: 1px solid black !important; border-bottom: 1px solid black !important; border-left: 1px solid black !important; border-right: 1px solid black !important; text-align: center; padding: 4px; background-color: #f8f9fa;">Driver</th>
                             <t t-if="o.driver_pengganti">
                                 <th style="width: 25%; border-top: 1px solid black !important; border-bottom: 1px solid black !important; border-left: 1px solid black !important; border-right: 1px solid black !important; text-align: center; padding: 4px; background-color: #f8f9fa;">Driver Pengganti</th>
                             </t>
-                            <th t-att-style="o.driver_pengganti and 'width: 25%;' or 'width: 33.33%;'" style="border-top: 1px solid black !important; border-bottom: 1px solid black !important; border-left: 1px solid black !important; border-right: 1px solid black !important; text-align: center; padding: 4px; background-color: #f8f9fa;">Penerima</th>
+                            <th style="border-top: 1px solid black !important; border-bottom: 1px solid black !important; border-left: 1px solid black !important; border-right: 1px solid black !important; text-align: center; padding: 4px; background-color: #f8f9fa;">Penerima</th>
                         </tr>
                     </thead>
                     <tbody>
