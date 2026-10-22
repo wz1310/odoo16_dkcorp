@@ -46,11 +46,47 @@ class NotifSales(models.Model):
 
 		return {'count': count, 'interval': interval_ms}
 
+	# @api.model
+	# def get_pending_manager_approval_action_id(self):
+	# 	"""Membuat ir.actions.act_window secara dinamis agar domain filter hari ini & approval terbawa sempurna"""
+	# 	current_date = fields.Date.context_today(self)
+		
+	# 	start_datetime = f"{current_date} 00:00:00"
+	# 	end_datetime = f"{current_date} 23:59:59"
+
+	# 	domain_list = [
+	# 		('state', '=', 'sale'),
+	# 		('manager_approved', '=', False),
+	# 		('date_order', '>=', start_datetime),
+	# 		('date_order', '<=', end_datetime)
+	# 	]
+
+	# 	action_vals = {
+	# 		'name': f'Pending Manager Approval SO ({current_date})',
+	# 		'res_model': 'sale.order',
+	# 		'view_mode': 'tree,form',
+	# 		'views': [(False, 'list'), (False, 'form')],
+	# 		'domain': str(domain_list),
+	# 		'target': 'current',
+	# 	}
+		
+	# 	# Membuat record action window baru di database secara dinamis
+	# 	action = self.env['ir.actions.act_window'].sudo().create(action_vals)
+	# 	return action.id
+
 	@api.model
 	def get_pending_manager_approval_action_id(self):
-		"""Membuat ir.actions.act_window secara dinamis agar domain filter hari ini & approval terbawa sempurna"""
+		"""Membuat ir.actions.act_window secara dinamis dan membersihkan action lama dari hari kemarin"""
 		current_date = fields.Date.context_today(self)
 		
+		# 1. Bersihkan record ir.actions.act_window pending approval yang bukan tanggal hari ini agar database tidak menumpuk
+		old_actions = self.env['ir.actions.act_window'].sudo().search([
+			('name', 'like', 'Pending Manager Approval SO%'),
+			('name', 'not like', f'Pending Manager Approval SO ({current_date})%')
+		])
+		if old_actions:
+			old_actions.unlink()
+
 		start_datetime = f"{current_date} 00:00:00"
 		end_datetime = f"{current_date} 23:59:59"
 
@@ -70,6 +106,6 @@ class NotifSales(models.Model):
 			'target': 'current',
 		}
 		
-		# Membuat record action window baru di database secara dinamis
+		# Membuat record action window baru di database secara dinamis untuk hari ini
 		action = self.env['ir.actions.act_window'].sudo().create(action_vals)
 		return action.id
