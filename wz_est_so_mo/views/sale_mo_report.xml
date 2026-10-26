@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- REGISTER REPORT XLSX UNTUK SALE ORDER -->
+    <record id="action_report_sale_bom_resume_xlsx" model="ir.actions.report">
+        <field name="name">Export Resume SO &amp; BoM (Excel)</field>
+        <field name="model">sale.order</field>
+        <field name="report_type">xlsx</field>
+        <field name="report_name">wz_int_tf_report.report_sale_bom_resume_xlsx</field>
+        <field name="report_file">RESUME_SO_DAN_KEBUTUHAN_BOM</field>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

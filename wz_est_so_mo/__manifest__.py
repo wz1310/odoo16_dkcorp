@@ -6,7 +6,8 @@
     'description': """Estimation Qty Used With MO""",
     'depends': ['sale','sale_management'],
     'data': [
-        'views/sale_mo_view.xml'
+        'views/sale_mo_view.xml',
+        'views/sale_mo_report.xml',
     ],
     'installable': True,
     'auto_install': False,
