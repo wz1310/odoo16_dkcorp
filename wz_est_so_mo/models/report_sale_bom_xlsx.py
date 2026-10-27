@@ -41,7 +41,7 @@ class ReportSaleBomResumeXlsx(models.AbstractModel):
 		for so in sales_orders:
 			partner_name = so.partner_id.name or "TANPA CUSTOMER"
 			tags = so.partner_id.category_id.mapped('name')
-			tag_name = tags[0] if tags else ""
+			tag_name = tags[0] if tags else "TANPA TAG"
 			partner_tags[partner_name] = tag_name
 
 			for line in so.order_line:
@@ -90,7 +90,7 @@ class ReportSaleBomResumeXlsx(models.AbstractModel):
 					bom_per_variant_grouped[prod_so_name] = {
 						'total_so_qty': 0.0,
 						'uom_so': line.product_uom.name or 'Pieces',
-						'components_map': {} # Dictionary untuk akumulasi unik per product_id komponen
+						'components_map': {}
 					}
 				
 				bom_per_variant_grouped[prod_so_name]['total_so_qty'] += line.product_uom_qty
@@ -102,12 +102,11 @@ class ReportSaleBomResumeXlsx(models.AbstractModel):
 					comp_full_name = product_obj.display_name
 					bom_comp_name = product_obj.name
 					uom_name = comp['uom_name']
-					unit_qty_per_single = comp['unit_qty'] # Qty per 1 unit produk SO
+					unit_qty_per_single = comp['unit_qty']
 					total_needed = comp['qty']
 
 					comp_map = bom_per_variant_grouped[prod_so_name]['components_map']
 					if comp_prod_id in comp_map:
-						# Akumulasikan total kebutuhan dan total qty per unit jika komponen muncul berkali-kali
 						comp_map[comp_prod_id]['qty_per_unit'] += unit_qty_per_single
 						comp_map[comp_prod_id]['total_qty'] += total_needed
 					else:
@@ -145,7 +144,7 @@ class ReportSaleBomResumeXlsx(models.AbstractModel):
 			row_idx += 1
 
 		# =============================================================
-		# SHEET 2: SALES ORDER DETAIL (Dengan Baris Tag Customer di Atas Nama Customer)
+		# SHEET 2: SALES ORDER DETAIL (Tag Customer Ter-merge Sesuai Kolom Partner)
 		# =============================================================
 		ws2 = workbook.add_worksheet('SALES ORDER DETAIL')
 		ws2.set_column('A:A', 35)
@@ -155,13 +154,32 @@ class ReportSaleBomResumeXlsx(models.AbstractModel):
 
 		p_col_map_2 = {}
 		col_idx = 1
+		
+		# Kelompokkan partner berdasarkan tag-nya untuk kebutuhan merge header baris ke-0
+		tag_groups = {}
 		for p_name in all_partners:
-			tag_val = partner_tags.get(p_name, "")
-			ws2.write(0, col_idx, tag_val, header_format)
-			ws2.write(1, col_idx, p_name, header_format)
-			ws2.set_column(col_idx, col_idx, 18)
-			p_col_map_2[p_name] = col_idx
-			col_idx += 1
+			t_name = partner_tags.get(p_name, "TANPA TAG")
+			if t_name not in tag_groups:
+				tag_groups[t_name] = []
+			tag_groups[t_name].append(p_name)
+
+		for tag_name, partners_in_tag in tag_groups.items():
+			start_c = col_idx
+			for p_name in partners_in_tag:
+				ws2.write(1, col_idx, p_name, header_format) # Nama Customer di baris bawah
+				ws2.set_column(col_idx, col_idx, 18)
+				p_col_map_2[p_name] = col_idx
+				col_idx += 1
+			end_c = col_idx - 1
+			
+			# Merge cell tag jika kolomnya lebih dari satu, atau tulis biasa jika hanya satu kolom
+			if start_c == end_c:
+				ws2.write(0, start_c, tag_name, header_format)
+			else:
+				ws2.merge_range(0, start_c, 0, end_c, tag_name, header_format)
+				# Beri border manual untuk sel-sel yang di-merge agar rapi
+				for c in range(start_c + 1, end_c + 1):
+					ws2.write(0, c, '', header_format)
 
 		ws2.merge_range(0, col_idx, 1, col_idx, "TOTAL", header_format)
 		ws2.set_column(col_idx, col_idx, 12)
@@ -216,7 +234,6 @@ class ReportSaleBomResumeXlsx(models.AbstractModel):
 			ws4.write(row_idx, 6, "BoM", header_format)
 			row_idx += 1
 
-			# Iterasi komponen unik yang sudah terakumulasi per varian SO
 			for comp_prod_id, comp in group_data['components_map'].items():
 				ws4.write(row_idx, 0, comp['ref_code'], normal_format)
 				ws4.write(row_idx, 1, comp['comp_full_name'], normal_format)
