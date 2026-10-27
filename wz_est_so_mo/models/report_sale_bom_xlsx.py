@@ -88,30 +88,37 @@ class ReportSaleBomResumeXlsx(models.AbstractModel):
 				prod_so_name = line.product_id.display_name
 				if prod_so_name not in bom_per_variant_grouped:
 					bom_per_variant_grouped[prod_so_name] = {
-						'total_so_qty': line.product_uom_qty,
+						'total_so_qty': 0.0,
 						'uom_so': line.product_uom.name or 'Pieces',
-						'components': []
+						'components_map': {} # Dictionary untuk akumulasi unik per product_id komponen
 					}
-				else:
-					bom_per_variant_grouped[prod_so_name]['total_so_qty'] += line.product_uom_qty
+				
+				bom_per_variant_grouped[prod_so_name]['total_so_qty'] += line.product_uom_qty
 
 				for comp in raw_components:
-					product_obj = self.env['product.product'].browse(comp['product_id'])
+					comp_prod_id = comp['product_id']
+					product_obj = self.env['product.product'].browse(comp_prod_id)
 					ref_code = product_obj.default_code or ''
 					comp_full_name = product_obj.display_name
 					bom_comp_name = product_obj.name
 					uom_name = comp['uom_name']
-					qty_per_unit = comp['unit_qty']
+					unit_qty_per_single = comp['unit_qty'] # Qty per 1 unit produk SO
 					total_needed = comp['qty']
 
-					bom_per_variant_grouped[prod_so_name]['components'].append({
-						'ref_code': ref_code,
-						'comp_full_name': comp_full_name,
-						'bom_comp_name': bom_comp_name,
-						'qty_per_unit': qty_per_unit,
-						'uom_name': uom_name,
-						'total_qty': total_needed
-					})
+					comp_map = bom_per_variant_grouped[prod_so_name]['components_map']
+					if comp_prod_id in comp_map:
+						# Akumulasikan total kebutuhan dan total qty per unit jika komponen muncul berkali-kali
+						comp_map[comp_prod_id]['qty_per_unit'] += unit_qty_per_single
+						comp_map[comp_prod_id]['total_qty'] += total_needed
+					else:
+						comp_map[comp_prod_id] = {
+							'ref_code': ref_code,
+							'comp_full_name': comp_full_name,
+							'bom_comp_name': bom_comp_name,
+							'qty_per_unit': unit_qty_per_single,
+							'uom_name': uom_name,
+							'total_qty': total_needed
+						}
 
 					if bom_comp_name not in global_bom:
 						global_bom[bom_comp_name] = {'uom': uom_name, 'grand_total': 0.0}
@@ -143,18 +150,15 @@ class ReportSaleBomResumeXlsx(models.AbstractModel):
 		ws2 = workbook.add_worksheet('SALES ORDER DETAIL')
 		ws2.set_column('A:A', 35)
 
-		# Row 0: Tag Customer Header
 		ws2.write(0, 0, "PRODUK / TAG", header_format)
-		
-		# Row 1: Nama Customer Full Header
 		ws2.write(1, 0, "", header_format)
 
 		p_col_map_2 = {}
 		col_idx = 1
 		for p_name in all_partners:
 			tag_val = partner_tags.get(p_name, "")
-			ws2.write(0, col_idx, tag_val, header_format) # Tag Customer di atas
-			ws2.write(1, col_idx, p_name, header_format) # Nama Customer Full di bawahnya
+			ws2.write(0, col_idx, tag_val, header_format)
+			ws2.write(1, col_idx, p_name, header_format)
 			ws2.set_column(col_idx, col_idx, 18)
 			p_col_map_2[p_name] = col_idx
 			col_idx += 1
@@ -193,7 +197,7 @@ class ReportSaleBomResumeXlsx(models.AbstractModel):
 			row_idx += 1
 
 		# =============================================================
-		# SHEET 4: KEBUTUHAN BOM PER VARIAN (Dengan Grouping per Varian SO)
+		# SHEET 4: KEBUTUHAN BOM PER VARIAN (Terakumulasi & Unik Tanpa Duplikat)
 		# =============================================================
 		ws4 = workbook.add_worksheet('KEBUTUHAN BOM PER VARIAN')
 		ws4.set_column('A:A', 15)
@@ -212,7 +216,8 @@ class ReportSaleBomResumeXlsx(models.AbstractModel):
 			ws4.write(row_idx, 6, "BoM", header_format)
 			row_idx += 1
 
-			for comp in group_data['components']:
+			# Iterasi komponen unik yang sudah terakumulasi per varian SO
+			for comp_prod_id, comp in group_data['components_map'].items():
 				ws4.write(row_idx, 0, comp['ref_code'], normal_format)
 				ws4.write(row_idx, 1, comp['comp_full_name'], normal_format)
 				ws4.write(row_idx, 2, comp['bom_comp_name'], normal_format)
