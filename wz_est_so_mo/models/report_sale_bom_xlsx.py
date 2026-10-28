@@ -63,65 +63,82 @@ class ReportSaleBomResumeXlsx(models.AbstractModel):
 				so_detail_data[prod_id][partner_name] += qty
 
 		# --- BOM CALCULATIONS ---
+		# Akumulator total kuantitas per produk SO dari seluruh SO yang dicentang
+		product_so_quantities = {} # { product_id: total_so_qty }
+		for so in sales_orders:
+			for line in so.order_line:
+				if not line.product_id or line.product_uom_qty <= 0:
+					continue
+				p_id = line.product_id.id
+				if p_id not in product_so_quantities:
+					product_so_quantities[p_id] = 0.0
+				product_so_quantities[p_id] += line.product_uom_qty
+
 		bom_per_variant_grouped = {}
 		global_bom = {}
 
 		first_so = sales_orders[0]
 		warehouse = first_so.warehouse_id or self.env['stock.warehouse'].search([('company_id', '=', first_so.company_id.id)], limit=1)
 
-		for so in sales_orders:
-			for line in so.order_line:
-				if not line.product_id or line.product_uom_qty <= 0:
-					continue
-				bom = self.env['mrp.bom']._bom_find(line.product_id)[line.product_id]
-				if not bom:
-					continue
+		# Ambil daftar produk unik di SO untuk dihitung BoM-nya secara akurat berdasarkan total kuantitas gabungan
+		unique_so_products = self.env['product.product'].browse(list(product_so_quantities.keys()))
 
-				ctx = dict(self.env.context, warehouse_id=warehouse.id)
-				bom_data = bom_report_obj.with_context(ctx)._get_bom_data(
-					bom=bom, warehouse=warehouse, product=line.product_id, line_qty=1.0
-				)
+		for prod in unique_so_products:
+			bom = self.env['mrp.bom']._bom_find(prod)[prod]
+			if not bom:
+				continue
 
-				raw_components = []
-				self._collect_raw_bom_details(bom_data, raw_components, line.product_uom_qty)
+			total_so_qty = product_so_quantities[prod.id]
+			ctx = dict(self.env.context, warehouse_id=warehouse.id)
+			
+			# Ambil struktur BoM murni untuk 1 unit produk (line_qty=1.0)
+			bom_data = bom_report_obj.with_context(ctx)._get_bom_data(
+				bom=bom, warehouse=warehouse, product=prod, line_qty=1.0
+			)
 
-				prod_so_name = line.product_id.display_name
-				if prod_so_name not in bom_per_variant_grouped:
-					bom_per_variant_grouped[prod_so_name] = {
-						'total_so_qty': 0.0,
-						'uom_so': line.product_uom.name or 'Pieces',
-						'components_map': {}
-					}
+			raw_components = []
+			self._collect_raw_bom_details(bom_data, raw_components)
+
+			prod_so_name = prod.display_name
+			uom_so_name = prod.uom_id.name or 'Pieces'
+
+			if prod_so_name not in bom_per_variant_grouped:
+				bom_per_variant_grouped[prod_so_name] = {
+					'total_so_qty': total_so_qty,
+					'uom_so': uom_so_name,
+					'components_map': {}
+				}
+
+			for comp in raw_components:
+				comp_prod_id = comp['product_id']
+				product_obj = self.env['product.product'].browse(comp_prod_id)
+				ref_code = product_obj.default_code or ''
+				comp_full_name = product_obj.display_name
+				bom_comp_name = product_obj.name
+				uom_name = comp['uom_name']
 				
-				bom_per_variant_grouped[prod_so_name]['total_so_qty'] += line.product_uom_qty
+				# unit_qty adalah murni per 1 unit produk dari BoM (misal: 28)
+				unit_qty_per_single = comp['unit_qty']
+				# total_needed adalah unit_qty dikali total kuantitas SO (misal: 28 * 8 = 224)
+				total_needed = unit_qty_per_single * total_so_qty
 
-				for comp in raw_components:
-					comp_prod_id = comp['product_id']
-					product_obj = self.env['product.product'].browse(comp_prod_id)
-					ref_code = product_obj.default_code or ''
-					comp_full_name = product_obj.display_name
-					bom_comp_name = product_obj.name
-					uom_name = comp['uom_name']
-					unit_qty_per_single = comp['unit_qty']
-					total_needed = comp['qty']
+				comp_map = bom_per_variant_grouped[prod_so_name]['components_map']
+				if comp_prod_id in comp_map:
+					comp_map[comp_prod_id]['qty_per_unit'] += unit_qty_per_single
+					comp_map[comp_prod_id]['total_qty'] += total_needed
+				else:
+					comp_map[comp_prod_id] = {
+						'ref_code': ref_code,
+						'comp_full_name': comp_full_name,
+						'bom_comp_name': bom_comp_name,
+						'qty_per_unit': unit_qty_per_single,
+						'uom_name': uom_name,
+						'total_qty': total_needed
+					}
 
-					comp_map = bom_per_variant_grouped[prod_so_name]['components_map']
-					if comp_prod_id in comp_map:
-						comp_map[comp_prod_id]['qty_per_unit'] += unit_qty_per_single
-						comp_map[comp_prod_id]['total_qty'] += total_needed
-					else:
-						comp_map[comp_prod_id] = {
-							'ref_code': ref_code,
-							'comp_full_name': comp_full_name,
-							'bom_comp_name': bom_comp_name,
-							'qty_per_unit': unit_qty_per_single,
-							'uom_name': uom_name,
-							'total_qty': total_needed
-						}
-
-					if bom_comp_name not in global_bom:
-						global_bom[bom_comp_name] = {'uom': uom_name, 'grand_total': 0.0}
-					global_bom[bom_comp_name]['grand_total'] += total_needed
+				if bom_comp_name not in global_bom:
+					global_bom[bom_comp_name] = {'uom': uom_name, 'grand_total': 0.0}
+				global_bom[bom_comp_name]['grand_total'] += total_needed
 
 		so_products = sales_orders.mapped('order_line.product_id')
 		all_partners = sorted(list(partner_tags.keys()))
@@ -155,7 +172,6 @@ class ReportSaleBomResumeXlsx(models.AbstractModel):
 		p_col_map_2 = {}
 		col_idx = 1
 		
-		# Kelompokkan partner berdasarkan tag-nya untuk kebutuhan merge header baris ke-0
 		tag_groups = {}
 		for p_name in all_partners:
 			t_name = partner_tags.get(p_name, "TANPA TAG")
@@ -166,18 +182,16 @@ class ReportSaleBomResumeXlsx(models.AbstractModel):
 		for tag_name, partners_in_tag in tag_groups.items():
 			start_c = col_idx
 			for p_name in partners_in_tag:
-				ws2.write(1, col_idx, p_name, header_format) # Nama Customer di baris bawah
+				ws2.write(1, col_idx, p_name, header_format)
 				ws2.set_column(col_idx, col_idx, 18)
 				p_col_map_2[p_name] = col_idx
 				col_idx += 1
 			end_c = col_idx - 1
 			
-			# Merge cell tag jika kolomnya lebih dari satu, atau tulis biasa jika hanya satu kolom
 			if start_c == end_c:
 				ws2.write(0, start_c, tag_name, header_format)
 			else:
 				ws2.merge_range(0, start_c, 0, end_c, tag_name, header_format)
-				# Beri border manual untuk sel-sel yang di-merge agar rapi
 				for c in range(start_c + 1, end_c + 1):
 					ws2.write(0, c, '', header_format)
 
@@ -215,7 +229,7 @@ class ReportSaleBomResumeXlsx(models.AbstractModel):
 			row_idx += 1
 
 		# =============================================================
-		# SHEET 4: KEBUTUHAN BOM PER VARIAN (Terakumulasi & Unik Tanpa Duplikat)
+		# SHEET 4: KEBUTUHAN BOM PER VARIAN (Qty per unit murni dari BoM)
 		# =============================================================
 		ws4 = workbook.add_worksheet('KEBUTUHAN BOM PER VARIAN')
 		ws4.set_column('A:A', 15)
@@ -239,17 +253,17 @@ class ReportSaleBomResumeXlsx(models.AbstractModel):
 				ws4.write(row_idx, 1, comp['comp_full_name'], normal_format)
 				ws4.write(row_idx, 2, comp['bom_comp_name'], normal_format)
 				ws4.write(row_idx, 3, '', normal_format)
-				ws4.write(row_idx, 4, comp['qty_per_unit'], num_format)
+				ws4.write(row_idx, 4, comp['qty_per_unit'], num_format) # Tetap murni angka satuan per 1 unit produk dari BoM
 				ws4.write(row_idx, 5, comp['uom_name'], center_format)
-				ws4.write(row_idx, 6, comp['total_qty'], num_format)
+				ws4.write(row_idx, 6, comp['total_qty'], num_format)   # Hasil kali (qty_per_unit * total_so_qty)
 				row_idx += 1
 			row_idx += 1
 
-	def _collect_raw_bom_details(self, bom_line_data, raw_components, so_qty=1.0):
+	def _collect_raw_bom_details(self, bom_line_data, raw_components):
 		components = bom_line_data.get('components', [])
 		for comp in components:
 			if comp.get('components'):
-				self._collect_raw_bom_details(comp, raw_components, so_qty)
+				self._collect_raw_bom_details(comp, raw_components)
 			else:
 				product_id = comp.get('product_id')
 				if not product_id:
@@ -259,6 +273,5 @@ class ReportSaleBomResumeXlsx(models.AbstractModel):
 				raw_components.append({
 					'product_id': product_id,
 					'unit_qty': unit_qty,
-					'qty': unit_qty * so_qty,
 					'uom_name': uom_name
 				})
