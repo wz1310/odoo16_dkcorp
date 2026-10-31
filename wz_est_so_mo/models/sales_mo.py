@@ -447,8 +447,13 @@ class SaleOrderPercentageWizard(models.TransientModel):
 		multiplier = self.percentage / 100.0
 		for order in orders:
 			for line in order.order_line:
-				# Mengubah qty berdasarkan persentase dari nilai sebelumnya
-				new_qty = line.product_uom_qty * multiplier
+				# Hitung hasil perkalian persentase
+				raw_qty = line.product_uom_qty * multiplier
+				
+				# Terapkan pembulatan: >= 0.5 ke atas (misal 5.5 -> 6), < 0.5 ke bawah (misal 5.4 -> 5)
+				# Menggunakan round() bawaan Python akan menghasilkan pembulatan terdekat (round half to even / standard round)
+				new_qty = round(raw_qty)
+				
 				line.write({'product_uom_qty': new_qty})
 		
 		return {'type': 'ir.actions.act_window_close'}
