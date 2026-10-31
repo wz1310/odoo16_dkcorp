@@ -9,6 +9,12 @@ class NotifSales(models.Model):
 
 	manager_approved = fields.Boolean(string='Manager Approved', default=False)
 
+
+	def copy(self, default=None):
+		"""Override method copy agar manager_approved selalu bernilai False saat SO diduplikasi."""
+		default = dict(default or {}, manager_approved=False)
+		return super().copy(default)
+
 	def action_manager_approve(self):
 		for order in self:
 			order.manager_approved = True
