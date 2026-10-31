@@ -28,4 +28,42 @@
                 action = records.action_create_bulk_int_bom()
         </field>
     </record>
+
+
+    <!-- TAMBAHAN WIZARD VIEW FORM POPUP -->
+    <record id="view_sale_order_percentage_wizard_form" model="ir.ui.view">
+        <field name="name">sale.order.percentage.wizard.form</field>
+        <field name="model">sale.order.percentage.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Update Qty by Percentage">
+                <group>
+                    <field name="percentage"/>
+                </group>
+                <footer>
+                    <button string="Validate" name="action_validate_percentage" type="object" class="btn-primary" confirm="Apakah Anda yakin?"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- TAMBAHAN SERVER ACTION UNTUK MEMUNCULKAN POPUP WIZARD DARI LIST VIEW -->
+    <record id="action_server_update_qty_percentage" model="ir.actions.server">
+        <field name="name">Update Qty by Percentage (%)</field>
+        <field name="model_id" ref="sale.model_sale_order"/>
+        <field name="binding_model_id" ref="sale.model_sale_order"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+            action = {
+                'name': 'Update Qty by Percentage',
+                'type': 'ir.actions.act_window',
+                'res_model': 'sale.order.percentage.wizard',
+                'view_mode': 'form',
+                'target': 'new',
+                'context': env.context,
+            }
+        </field>
+    </record>
+
 </odoo>

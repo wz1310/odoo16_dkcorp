@@ -428,3 +428,27 @@ class EstSalesLineMo(models.Model):
 	_inherit = 'sale.order.line'
 
 	est = fields.Float(string="Estimasi Qty")
+
+
+# ==========================================
+# TAMBAHAN WIZARD UNTUK UPDATE QTY BERDASARKAN %
+# ==========================================
+class SaleOrderPercentageWizard(models.TransientModel):
+	_name = 'sale.order.percentage.wizard'
+	_description = 'Wizard Update Qty SO by Percentage'
+
+	percentage = fields.Float(string="Persentase (%)", default=100.0, required=True)
+
+	def action_validate_percentage(self):
+		self.ensure_one()
+		active_ids = self.env.context.get('active_ids', [])
+		orders = self.env['sale.order'].browse(active_ids)
+		
+		multiplier = self.percentage / 100.0
+		for order in orders:
+			for line in order.order_line:
+				# Mengubah qty berdasarkan persentase dari nilai sebelumnya
+				new_qty = line.product_uom_qty * multiplier
+				line.write({'product_uom_qty': new_qty})
+		
+		return {'type': 'ir.actions.act_window_close'}
