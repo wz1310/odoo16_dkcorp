@@ -3,7 +3,10 @@ import json
 import math
 import requests
 import pytz  # <-- Tambahkan import pytz untuk konversi zona waktu
+import logging
 from odoo import models, fields, api, _
+
+_logger = logging.getLogger(__name__)
 
 class ScheduleTele(models.Model):
 	_inherit = 'sale.order'
@@ -18,6 +21,7 @@ class ScheduleTele(models.Model):
 	# 	return res
 
 	def send_tele(self):
+		_logger.info("=== MULAI PROSES: send_tele ===")
 		print("JALAN APIIIII")
 		self.ensure_one()
 		
@@ -26,6 +30,7 @@ class ScheduleTele(models.Model):
 		chatid_number = self.env['ir.config_parameter'].sudo().search([('key', '=', 'chatid_sales')]).value
 		
 		if not url_tele or not chatid_number:
+			_logger.warning("send_tele BATAL: Konfigurasi url_tele_notif_sales atau chatid_sales belum di-set!")
 			return # Keluar jika konfigurasi belum diset
 		
 		# Mengatur zona waktu ke WIB (Asia/Jakarta)
@@ -80,10 +85,13 @@ class ScheduleTele(models.Model):
 		headers = {'Content-Type': 'application/json'}
 		
 		try:
+			_logger.info("Mengirim notifikasi Telegram untuk SO: %s", self.name)
 			response = requests.post(url_tele, headers=headers, data=payload, timeout=10)
+			_logger.info("Response Telegram (send_tele): status=%s, body=%s", response.status_code, response.text)
 			print("response", response)
 			response.raise_for_status()
 		except Exception as e:
+			_logger.error("Error pada send_tele: %s", str(e))
 			pass
 
 	def send_schedule_resume_tele(self):
@@ -92,11 +100,14 @@ class ScheduleTele(models.Model):
 		dijalankan melalui schedule manual, lengkap dengan tombol inline URL ke Odoo
 		menggunakan dynamic action untuk memastikan filter domain dan grouping berjalan.
 		"""
+		_logger.info("=== MULAI PROSES: send_schedule_resume_tele ===")
+		
 		# 1. Ambil konfigurasi URL dan Chat ID dari System Parameters
 		url_tele = self.env['ir.config_parameter'].sudo().search([('key', '=', 'url_tele_notif_sales')]).value
 		chatid_number = self.env['ir.config_parameter'].sudo().search([('key', '=', 'chatid_sales')]).value
 		
 		if not url_tele or not chatid_number:
+			_logger.warning("send_schedule_resume_tele BATAL: Config url_tele_notif_sales / chatid_sales tidak ditemukan!")
 			return # Keluar jika konfigurasi belum diset
 
 		# 2. Tentukan rentang waktu penuh hari ini (00:00:00 s.d 23:59:59 WIB) dikonversi ke UTC
@@ -108,6 +119,8 @@ class ScheduleTele(models.Model):
 		
 		start_utc_dt = start_local_dt.astimezone(pytz.utc).strftime('%Y-%m-%d %H:%M:%S')
 		end_utc_dt = end_local_dt.astimezone(pytz.utc).strftime('%Y-%m-%d %H:%M:%S')
+
+		_logger.info("Filter Tanggal (UTC) send_schedule_resume_tele: %s s.d %s", start_utc_dt, end_utc_dt)
 
 		# 3. Eksekusi Query SQL untuk performa yang lebih ringan dan optimal (Filter penuh hari ini)
 		query = """
@@ -126,7 +139,10 @@ class ScheduleTele(models.Model):
 		self.env.cr.execute(query, (start_utc_dt, end_utc_dt))
 		results = self.env.cr.fetchall()
 
+		_logger.info("Hasil Query send_schedule_resume_tele (%d record): %s", len(results) if results else 0, results)
+
 		if not results:
+			_logger.info("send_schedule_resume_tele SELESAI: Tidak ada data SO pada rentang tanggal tersebut.")
 			# Jika tidak ada data SO pada hari ini
 			return
 
@@ -202,10 +218,13 @@ class ScheduleTele(models.Model):
 		headers = {'Content-Type': 'application/json'}
 		
 		try:
+			_logger.info("Mengirim payload Telegram send_schedule_resume_tele...")
 			response = requests.post(url_tele, headers=headers, data=json.dumps(payload), timeout=10)
+			_logger.info("Response send_schedule_resume_tele: status=%s, body=%s", response.status_code, response.text)
 			print("response schedule resume", response.text)
 			response.raise_for_status()
 		except Exception as e:
+			_logger.error("Error Telegram Schedule: %s", str(e))
 			print("Error Telegram Schedule:", str(e))
 			pass
 
@@ -214,11 +233,14 @@ class ScheduleTele(models.Model):
 		Fungsi untuk mengirimkan resume Sales Order harian khusus yang SUDAH di-approve manager hari ini,
 		lengkap dengan tombol inline URL ke Odoo menggunakan dynamic action.
 		"""
+		_logger.info("=== MULAI PROSES: send_schedule_resume_approved_tele ===")
+		
 		# 1. Ambil konfigurasi URL dan Chat ID dari System Parameters
 		url_tele = self.env['ir.config_parameter'].sudo().search([('key', '=', 'url_tele_notif_sales')]).value
 		chatid_number = self.env['ir.config_parameter'].sudo().search([('key', '=', 'chatid_sales')]).value
 		
 		if not url_tele or not chatid_number:
+			_logger.warning("send_schedule_resume_approved_tele BATAL: Config url_tele_notif_sales / chatid_sales tidak ditemukan!")
 			return # Keluar jika konfigurasi belum diset
 
 		# 2. Tentukan rentang waktu penuh hari ini (00:00:00 s.d 23:59:59 WIB) dikonversi ke UTC
@@ -230,6 +252,8 @@ class ScheduleTele(models.Model):
 		
 		start_utc_dt = start_local_dt.astimezone(pytz.utc).strftime('%Y-%m-%d %H:%M:%S')
 		end_utc_dt = end_local_dt.astimezone(pytz.utc).strftime('%Y-%m-%d %H:%M:%S')
+
+		_logger.info("Filter Tanggal (UTC) send_schedule_resume_approved_tele: %s s.d %s", start_utc_dt, end_utc_dt)
 
 		# 3. Eksekusi Query SQL dengan tambahan filter manager_approved = TRUE
 		query = """
@@ -249,7 +273,10 @@ class ScheduleTele(models.Model):
 		self.env.cr.execute(query, (start_utc_dt, end_utc_dt))
 		results = self.env.cr.fetchall()
 
+		_logger.info("Hasil Query send_schedule_resume_approved_tele (%d record): %s", len(results) if results else 0, results)
+
 		if not results:
+			_logger.info("send_schedule_resume_approved_tele SELESAI: Tidak ada data SO approved pada rentang tanggal tersebut.")
 			# Jika tidak ada data SO approved pada hari ini
 			return
 
@@ -325,10 +352,13 @@ class ScheduleTele(models.Model):
 		headers = {'Content-Type': 'application/json'}
 		
 		try:
+			_logger.info("Mengirim payload Telegram send_schedule_resume_approved_tele...")
 			response = requests.post(url_tele, headers=headers, data=json.dumps(payload), timeout=10)
+			_logger.info("Response send_schedule_resume_approved_tele: status=%s, body=%s", response.status_code, response.text)
 			print("response schedule resume approved", response.text)
 			response.raise_for_status()
 		except Exception as e:
+			_logger.error("Error Telegram Schedule Approved: %s", str(e))
 			print("Error Telegram Schedule Approved:", str(e))
 			pass
 
@@ -615,10 +645,13 @@ class ScheduleTele(models.Model):
 		Fungsi untuk mengirimkan resume Sales Order harian dengan detail varian/produk per customer hari ini,
 		dijalankan melalui schedule manual, lengkap dengan tombol inline URL ke Odoo.
 		"""
+		_logger.info("=== MULAI PROSES: send_schedule_product_resume_tele ===")
+		
 		url_tele = self.env['ir.config_parameter'].sudo().search([('key', '=', 'url_tele_notif_sales')]).value
 		chatid_number = self.env['ir.config_parameter'].sudo().search([('key', '=', 'chatid_sales_manager')]).value
 		
 		if not url_tele or not chatid_number:
+			_logger.warning("send_schedule_product_resume_tele BATAL: Config url_tele_notif_sales / chatid_sales_manager tidak ditemukan!")
 			return # Keluar jika konfigurasi belum diset
 
 		user_tz = pytz.timezone('Asia/Jakarta')
@@ -629,6 +662,8 @@ class ScheduleTele(models.Model):
 		
 		start_utc_dt = start_local_dt.astimezone(pytz.utc).strftime('%Y-%m-%d %H:%M:%S')
 		end_utc_dt = end_local_dt.astimezone(pytz.utc).strftime('%Y-%m-%d %H:%M:%S')
+
+		_logger.info("Filter Tanggal (UTC) send_schedule_product_resume_tele: %s s.d %s", start_utc_dt, end_utc_dt)
 
 		# Menggunakan ekstraksi COALESCE pada SQL agar langsung mendapatkan teks string bersih tanpa repot parse en_US
 		query = """
@@ -651,7 +686,10 @@ class ScheduleTele(models.Model):
 		self.env.cr.execute(query, (start_utc_dt, end_utc_dt))
 		results = self.env.cr.fetchall()
 
+		_logger.info("Hasil Query send_schedule_product_resume_tele (%d record): %s", len(results) if results else 0, results)
+
 		if not results:
+			_logger.info("send_schedule_product_resume_tele SELESAI: Tidak ada data produk SO pada rentang tanggal tersebut.")
 			return
 
 		from collections import defaultdict
@@ -728,10 +766,13 @@ class ScheduleTele(models.Model):
 		headers = {'Content-Type': 'application/json'}
 		
 		try:
+			_logger.info("Mengirim payload Telegram send_schedule_product_resume_tele...")
 			response = requests.post(url_tele, headers=headers, data=json.dumps(payload), timeout=10)
+			_logger.info("Response send_schedule_product_resume_tele: status=%s, body=%s", response.status_code, response.text)
 			print("response schedule product resume", response.text)
 			response.raise_for_status()
 		except Exception as e:
+			_logger.error("Error Telegram Schedule Product Resume: %s", str(e))
 			print("Error Telegram Schedule Product Resume:", str(e))
 			pass
 
@@ -740,10 +781,13 @@ class ScheduleTele(models.Model):
 		Fungsi untuk mengirimkan resume Sales Order harian dengan detail varian/produk khusus yang SUDAH di-approve manager hari ini,
 		lengkap dengan tombol inline URL ke Odoo.
 		"""
+		_logger.info("=== MULAI PROSES: send_schedule_product_resume_approved_tele ===")
+		
 		url_tele = self.env['ir.config_parameter'].sudo().search([('key', '=', 'url_tele_notif_sales')]).value
 		chatid_number = self.env['ir.config_parameter'].sudo().search([('key', '=', 'chatid_sales_manager')]).value
 		
 		if not url_tele or not chatid_number:
+			_logger.warning("send_schedule_product_resume_approved_tele BATAL: Config url_tele_notif_sales / chatid_sales_manager tidak ditemukan!")
 			return # Keluar jika konfigurasi belum diset
 
 		user_tz = pytz.timezone('Asia/Jakarta')
@@ -754,6 +798,8 @@ class ScheduleTele(models.Model):
 		
 		start_utc_dt = start_local_dt.astimezone(pytz.utc).strftime('%Y-%m-%d %H:%M:%S')
 		end_utc_dt = end_local_dt.astimezone(pytz.utc).strftime('%Y-%m-%d %H:%M:%S')
+
+		_logger.info("Filter Tanggal (UTC) send_schedule_product_resume_approved_tele: %s s.d %s", start_utc_dt, end_utc_dt)
 
 		# Menggunakan ekstraksi COALESCE pada SQL agar langsung mendapatkan teks string bersih tanpa repot parse en_US
 		query = """
@@ -777,7 +823,10 @@ class ScheduleTele(models.Model):
 		self.env.cr.execute(query, (start_utc_dt, end_utc_dt))
 		results = self.env.cr.fetchall()
 
+		_logger.info("Hasil Query send_schedule_product_resume_approved_tele (%d record): %s", len(results) if results else 0, results)
+
 		if not results:
+			_logger.info("send_schedule_product_resume_approved_tele SELESAI: Tidak ada data produk SO approved pada rentang tanggal tersebut.")
 			return
 
 		from collections import defaultdict
@@ -854,9 +903,12 @@ class ScheduleTele(models.Model):
 		headers = {'Content-Type': 'application/json'}
 		
 		try:
+			_logger.info("Mengirim payload Telegram send_schedule_product_resume_approved_tele...")
 			response = requests.post(url_tele, headers=headers, data=json.dumps(payload), timeout=10)
+			_logger.info("Response send_schedule_product_resume_approved_tele: status=%s, body=%s", response.status_code, response.text)
 			print("response schedule product resume approved", response.text)
 			response.raise_for_status()
 		except Exception as e:
+			_logger.error("Error Telegram Schedule Product Resume Approved: %s", str(e))
 			print("Error Telegram Schedule Product Resume Approved:", str(e))
 			pass
