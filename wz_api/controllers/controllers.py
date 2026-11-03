@@ -362,284 +362,6 @@ class ScheduleTele(models.Model):
 			print("Error Telegram Schedule Approved:", str(e))
 			pass
 
-	# def send_schedule_product_resume_tele(self):
-	# 	"""
-	# 	Fungsi untuk mengirimkan resume Sales Order harian dengan detail varian/produk per customer hari ini,
-	# 	dijalankan melalui schedule manual, lengkap dengan tombol inline URL ke Odoo.
-	# 	"""
-	# 	url_tele = self.env['ir.config_parameter'].sudo().search([('key', '=', 'url_tele_notif_sales')]).value
-	# 	chatid_number = self.env['ir.config_parameter'].sudo().search([('key', '=', 'chatid_sales_manager')]).value
-		
-	# 	if not url_tele or not chatid_number:
-	# 		return # Keluar jika konfigurasi belum diset
-
-	# 	user_tz = pytz.timezone('Asia/Jakarta')
-	# 	now_local = datetime.datetime.now(user_tz)
-		
-	# 	start_local_dt = now_local.replace(hour=0, minute=0, second=0, microsecond=0)
-	# 	end_local_dt = now_local.replace(hour=23, minute=59, second=59, microsecond=999999)
-		
-	# 	start_utc_dt = start_local_dt.astimezone(pytz.utc).strftime('%Y-%m-%d %H:%M:%S')
-	# 	end_utc_dt = end_local_dt.astimezone(pytz.utc).strftime('%Y-%m-%d %H:%M:%S')
-
-	# 	query = """
-	# 		SELECT 
-	# 			rp.name AS customer_name,
-	# 			pt.name AS product_name,
-	# 			COALESCE(SUM(sol.product_uom_qty), 0.0) AS total_qty
-	# 		FROM sale_order so
-	# 		JOIN res_partner rp ON so.partner_id = rp.id
-	# 		JOIN sale_order_line sol ON sol.order_id = so.id
-	# 		JOIN product_product pp ON sol.product_id = pp.id
-	# 		JOIN product_template pt ON pp.product_tmpl_id = pt.id
-	# 		WHERE so.state = 'sale'
-	# 		  AND (sol.display_type IS NULL OR sol.display_type = '')
-	# 		  AND so.date_order >= %s
-	# 		  AND so.date_order <= %s
-	# 		GROUP BY rp.name, pt.name
-	# 		ORDER BY rp.name, pt.name;
-	# 	"""
-	# 	self.env.cr.execute(query, (start_utc_dt, end_utc_dt))
-	# 	results = self.env.cr.fetchall()
-
-	# 	if not results:
-	# 		return
-
-	# 	from collections import defaultdict
-	# 	customer_products = defaultdict(list)
-	# 	total_akumulasi_so = 0.0
-
-	# 	for row in results:
-	# 		cust_name = row[0]
-	# 		raw_prod_name = row[1]
-			
-	# 		# Penanganan jika nama produk berupa dictionary/JSON translatable dari Odoo
-	# 		if isinstance(raw_prod_name, dict):
-	# 			prod_name = raw_prod_name.get('en_US') or raw_prod_name.get('id_ID') or next(iter(raw_prod_name.values()), '-')
-	# 		else:
-	# 			try:
-	# 				import ast
-	# 				parsed = ast.literal_eval(raw_prod_name)
-	# 				if isinstance(parsed, dict):
-	# 					prod_name = parsed.get('en_US') or parsed.get('id_ID') or next(iter(parsed.values()), '-')
-	# 				else:
-	# 					prod_name = str(raw_prod_name)
-	# 			except Exception:
-	# 				prod_name = str(raw_prod_name)
-
-	# 		qty = row[2]
-	# 		customer_products[cust_name].append((prod_name, qty))
-	# 		total_akumulasi_so += qty
-
-	# 	customer_lines = ""
-	# 	for cust_name, prod_list in customer_products.items():
-	# 		customer_lines += f"Akumulasi SO {cust_name}\n"
-	# 		for prod_name, qty in prod_list:
-	# 			customer_lines += f"Total {prod_name} {qty}\n"
-	# 		customer_lines += "\n"
-
-	# 	formula = self.env['mrp.worker.formula'].search([], limit=1)
-	# 	jumlah_tenaga_kerja = 0
-	# 	if formula and formula.qty_base > 0:
-	# 		multiplier = math.ceil(total_akumulasi_so / formula.qty_base)
-	# 		jumlah_tenaga_kerja = multiplier * formula.worker_count
-
-	# 	date_str = now_local.strftime('%d-%m-%Y')
-
-	# 	message_text = (
-	# 		f"Resume SO {date_str}\n\n"
-	# 		f"{customer_lines}"
-	# 		f"Sehingga Total Akumulasi SO adalah {total_akumulasi_so}\n"
-	# 		f"Jumlah Kebutuhan Tenaga Kerja {jumlah_tenaga_kerja}\n\n"
-	# 		f"Silahkan ditindak lanjuti!"
-	# 	)
-
-	# 	base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url') or ''
-	# 	base_url = base_url.replace('http://', 'https://')
-		
-	# 	payload = {
-	# 		"chat_id": chatid_number,
-	# 		"text": message_text,
-	# 		"parse_mode": "HTML"
-	# 	}
-
-	# 	if base_url and 'localhost' not in base_url and '127.0.0.1' not in base_url:
-	# 		domain_list = [('state', '=', 'sale'), ('date_order', '>=', start_utc_dt), ('date_order', '<=', end_utc_dt)]
-	# 		context_dict = {'group_by': 'partner_id'}
-			
-	# 		action_vals = {
-	# 			'name': f'Resume SO {date_str}',
-	# 			'res_model': 'sale.order',
-	# 			'view_mode': 'tree,kanban,form',
-	# 			'domain': str(domain_list),
-	# 			'context': str(context_dict),
-	# 			'target': 'current',
-	# 		}
-	# 		action = self.env['ir.actions.act_window'].sudo().create(action_vals)
-	# 		action_id = action.id
-			
-	# 		odoo_so_url = f"{base_url.rstrip('/')}/web#action={action_id}&model=sale.order&view_type=list"
-			
-	# 		payload["reply_markup"] = {
-	# 			"inline_keyboard": [
-	# 				[
-	# 					{
-	# 						"text": "Lihat List SO di Odoo",
-	# 						"url": odoo_so_url
-	# 					}
-	# 				]
-	# 			]
-	# 		}
-		
-	# 	headers = {'Content-Type': 'application/json'}
-		
-	# 	try:
-	# 		response = requests.post(url_tele, headers=headers, data=json.dumps(payload), timeout=10)
-	# 		print("response schedule product resume", response.text)
-	# 		response.raise_for_status()
-	# 	except Exception as e:
-	# 		print("Error Telegram Schedule Product Resume:", str(e))
-	# 		pass
-
-	# def send_schedule_product_resume_approved_tele(self):
-	# 	"""
-	# 	Fungsi untuk mengirimkan resume Sales Order harian dengan detail varian/produk khusus yang SUDAH di-approve manager hari ini,
-	# 	lengkap dengan tombol inline URL ke Odoo.
-	# 	"""
-	# 	url_tele = self.env['ir.config_parameter'].sudo().search([('key', '=', 'url_tele_notif_sales')]).value
-	# 	chatid_number = self.env['ir.config_parameter'].sudo().search([('key', '=', 'chatid_sales_manager')]).value
-		
-	# 	if not url_tele or not chatid_number:
-	# 		return # Keluar jika konfigurasi belum diset
-
-	# 	user_tz = pytz.timezone('Asia/Jakarta')
-	# 	now_local = datetime.datetime.now(user_tz)
-		
-	# 	start_local_dt = now_local.replace(hour=0, minute=0, second=0, microsecond=0)
-	# 	end_local_dt = now_local.replace(hour=23, minute=59, second=59, microsecond=999999)
-		
-	# 	start_utc_dt = start_local_dt.astimezone(pytz.utc).strftime('%Y-%m-%d %H:%M:%S')
-	# 	end_utc_dt = end_local_dt.astimezone(pytz.utc).strftime('%Y-%m-%d %H:%M:%S')
-
-	# 	query = """
-	# 		SELECT 
-	# 			rp.name AS customer_name,
-	# 			pt.name AS product_name,
-	# 			COALESCE(SUM(sol.product_uom_qty), 0.0) AS total_qty
-	# 		FROM sale_order so
-	# 		JOIN res_partner rp ON so.partner_id = rp.id
-	# 		JOIN sale_order_line sol ON sol.order_id = so.id
-	# 		JOIN product_product pp ON sol.product_id = pp.id
-	# 		JOIN product_template pt ON pp.product_tmpl_id = pt.id
-	# 		WHERE so.state = 'sale'
-	# 		  AND so.manager_approved = TRUE
-	# 		  AND (sol.display_type IS NULL OR sol.display_type = '')
-	# 		  AND so.date_order >= %s
-	# 		  AND so.date_order <= %s
-	# 		GROUP BY rp.name, pt.name
-	# 		ORDER BY rp.name, pt.name;
-	# 	"""
-	# 	self.env.cr.execute(query, (start_utc_dt, end_utc_dt))
-	# 	results = self.env.cr.fetchall()
-
-	# 	if not results:
-	# 		return
-
-	# 	from collections import defaultdict
-	# 	customer_products = defaultdict(list)
-	# 	total_akumulasi_so = 0.0
-
-	# 	for row in results:
-	# 		cust_name = row[0]
-	# 		raw_prod_name = row[1]
-			
-	# 		if isinstance(raw_prod_name, dict):
-	# 			prod_name = raw_prod_name.get('en_US') or raw_prod_name.get('id_ID') or next(iter(raw_prod_name.values()), '-')
-	# 		else:
-	# 			try:
-	# 				import ast
-	# 				parsed = ast.literal_eval(raw_prod_name)
-	# 				if isinstance(parsed, dict):
-	# 					prod_name = parsed.get('en_US') or parsed.get('id_ID') or next(iter(parsed.values()), '-')
-	# 				else:
-	# 					prod_name = str(raw_prod_name)
-	# 			except Exception:
-	# 				prod_name = str(raw_prod_name)
-
-	# 		qty = row[2]
-	# 		customer_products[cust_name].append((prod_name, qty))
-	# 		total_akumulasi_so += qty
-
-	# 	customer_lines = ""
-	# 	for cust_name, prod_list in customer_products.items():
-	# 		customer_lines += f"Akumulasi SO {cust_name}\n"
-	# 		for prod_name, qty in prod_list:
-	# 			customer_lines += f"Total {prod_name} {qty}\n"
-	# 		customer_lines += "\n"
-
-	# 	formula = self.env['mrp.worker.formula'].search([], limit=1)
-	# 	jumlah_tenaga_kerja = 0
-	# 	if formula and formula.qty_base > 0:
-	# 		multiplier = math.ceil(total_akumulasi_so / formula.qty_base)
-	# 		jumlah_tenaga_kerja = multiplier * formula.worker_count
-
-	# 	date_str = now_local.strftime('%d-%m-%Y')
-
-	# 	message_text = (
-	# 		f"Resume SO Approved {date_str}\n\n"
-	# 		f"{customer_lines}"
-	# 		f"Sehingga Total Akumulasi SO Approved adalah {total_akumulasi_so}\n"
-	# 		f"Jumlah Kebutuhan Tenaga Kerja {jumlah_tenaga_kerja}\n\n"
-	# 		f"Silahkan ditindak lanjuti!"
-	# 	)
-
-	# 	base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url') or ''
-	# 	base_url = base_url.replace('http://', 'https://')
-		
-	# 	payload = {
-	# 		"chat_id": chatid_number,
-	# 		"text": message_text,
-	# 		"parse_mode": "HTML"
-	# 	}
-
-	# 	if base_url and 'localhost' not in base_url and '127.0.0.1' not in base_url:
-	# 		domain_list = [('state', '=', 'sale'), ('manager_approved', '=', True), ('date_order', '>=', start_utc_dt), ('date_order', '<=', end_utc_dt)]
-	# 		context_dict = {'group_by': 'partner_id'}
-			
-	# 		action_vals = {
-	# 			'name': f'Resume SO Approved {date_str}',
-	# 			'res_model': 'sale.order',
-	# 			'view_mode': 'tree,kanban,form',
-	# 			'domain': str(domain_list),
-	# 			'context': str(context_dict),
-	# 			'target': 'current',
-	# 		}
-	# 		action = self.env['ir.actions.act_window'].sudo().create(action_vals)
-	# 		action_id = action.id
-			
-	# 		odoo_so_url = f"{base_url.rstrip('/')}/web#action={action_id}&model=sale.order&view_type=list"
-			
-	# 		payload["reply_markup"] = {
-	# 			"inline_keyboard": [
-	# 				[
-	# 					{
-	# 						"text": "Lihat List SO Approved di Odoo",
-	# 						"url": odoo_so_url
-	# 					}
-	# 				]
-	# 			]
-	# 		}
-		
-	# 	headers = {'Content-Type': 'application/json'}
-		
-	# 	try:
-	# 		response = requests.post(url_tele, headers=headers, data=json.dumps(payload), timeout=10)
-	# 		print("response schedule product resume approved", response.text)
-	# 		response.raise_for_status()
-	# 	except Exception as e:
-	# 		print("Error Telegram Schedule Product Resume Approved:", str(e))
-	# 		pass
-
 	def send_schedule_product_resume_tele(self):
 		"""
 		Fungsi untuk mengirimkan resume Sales Order harian dengan detail varian/produk per customer hari ini,
@@ -718,63 +440,84 @@ class ScheduleTele(models.Model):
 
 		date_str = now_local.strftime('%d-%m-%Y')
 
-		message_text = (
-			f"Resume SO {date_str}\n\n"
-			f"{customer_lines}"
+		footer_text = (
 			f"Sehingga Total Akumulasi SO adalah {total_akumulasi_so}\n"
 			f"Jumlah Kebutuhan Tenaga Kerja {jumlah_tenaga_kerja}\n\n"
 			f"Silahkan ditindak lanjuti!"
 		)
+		header_text = f"Resume SO {date_str}\n\n"
+
+		# Logika pemecahan pesan jika melebihi batas aman Telegram (3800 karakter untuk menyisakan ruang)
+		max_length = 3800
+		messages = []
+		current_chunk = header_text
+
+		for cust_name, prod_list in customer_products.items():
+			block = f"Akumulasi SO {cust_name}\n"
+			for prod_name, qty in prod_list:
+				block += f"Total {prod_name} {qty}\n"
+			block += "\n"
+
+			if len(current_chunk) + len(block) > max_length:
+				messages.append(current_chunk)
+				current_chunk = block
+			else:
+				current_chunk += block
+
+		current_chunk += footer_text
+		messages.append(current_chunk)
 
 		base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url') or ''
 		base_url = base_url.replace('http://', 'https://')
 		
-		payload = {
-			"chat_id": chatid_number,
-			"text": message_text,
-			"parse_mode": "HTML"
-		}
-
-		if base_url and 'localhost' not in base_url and '127.0.0.1' not in base_url:
-			domain_list = [('state', '=', 'sale'), ('date_order', '>=', start_utc_dt), ('date_order', '<=', end_utc_dt)]
-			context_dict = {'group_by': 'partner_id'}
-			
-			action_vals = {
-				'name': f'Resume SO {date_str}',
-				'res_model': 'sale.order',
-				'view_mode': 'tree,kanban,form',
-				'domain': str(domain_list),
-				'context': str(context_dict),
-				'target': 'current',
-			}
-			action = self.env['ir.actions.act_window'].sudo().create(action_vals)
-			action_id = action.id
-			
-			odoo_so_url = f"{base_url.rstrip('/')}/web#action={action_id}&model=sale.order&view_type=list"
-			
-			payload["reply_markup"] = {
-				"inline_keyboard": [
-					[
-						{
-							"text": "Lihat List SO di Odoo",
-							"url": odoo_so_url
-						}
-					]
-				]
-			}
-		
 		headers = {'Content-Type': 'application/json'}
-		
-		try:
-			_logger.info("Mengirim payload Telegram send_schedule_product_resume_tele...")
-			response = requests.post(url_tele, headers=headers, data=json.dumps(payload), timeout=10)
-			_logger.info("Response send_schedule_product_resume_tele: status=%s, body=%s", response.status_code, response.text)
-			print("response schedule product resume", response.text)
-			response.raise_for_status()
-		except Exception as e:
-			_logger.error("Error Telegram Schedule Product Resume: %s", str(e))
-			print("Error Telegram Schedule Product Resume:", str(e))
-			pass
+
+		for idx, message_text in enumerate(messages):
+			payload = {
+				"chat_id": chatid_number,
+				"text": message_text,
+				"parse_mode": "HTML"
+			}
+
+			# Pasang tombol hanya pada pesan terakhir
+			if idx == len(messages) - 1 and base_url and 'localhost' not in base_url and '127.0.0.1' not in base_url:
+				domain_list = [('state', '=', 'sale'), ('date_order', '>=', start_utc_dt), ('date_order', '<=', end_utc_dt)]
+				context_dict = {'group_by': 'partner_id'}
+				
+				action_vals = {
+					'name': f'Resume SO {date_str}',
+					'res_model': 'sale.order',
+					'view_mode': 'tree,kanban,form',
+					'domain': str(domain_list),
+					'context': str(context_dict),
+					'target': 'current',
+				}
+				action = self.env['ir.actions.act_window'].sudo().create(action_vals)
+				action_id = action.id
+				
+				odoo_so_url = f"{base_url.rstrip('/')}/web#action={action_id}&model=sale.order&view_type=list"
+				
+				payload["reply_markup"] = {
+					"inline_keyboard": [
+						[
+							{
+								"text": "Lihat List SO di Odoo",
+								"url": odoo_so_url
+							}
+						]
+					]
+				}
+
+			try:
+				_logger.info("Mengirim payload Telegram send_schedule_product_resume_tele (Bagian %d/%d)...", idx+1, len(messages))
+				response = requests.post(url_tele, headers=headers, data=json.dumps(payload), timeout=10)
+				_logger.info("Response send_schedule_product_resume_tele: status=%s, body=%s", response.status_code, response.text)
+				print("response schedule product resume", response.text)
+				response.raise_for_status()
+			except Exception as e:
+				_logger.error("Error Telegram Schedule Product Resume: %s", str(e))
+				print("Error Telegram Schedule Product Resume:", str(e))
+				pass
 
 	def send_schedule_product_resume_approved_tele(self):
 		"""
@@ -855,60 +598,79 @@ class ScheduleTele(models.Model):
 
 		date_str = now_local.strftime('%d-%m-%Y')
 
-		message_text = (
-			f"Resume SO Approved {date_str}\n\n"
-			f"{customer_lines}"
+		footer_text = (
 			f"Sehingga Total Akumulasi SO Approved adalah {total_akumulasi_so}\n"
 			f"Jumlah Kebutuhan Tenaga Kerja {jumlah_tenaga_kerja}\n\n"
 			f"Silahkan ditindak lanjuti!"
 		)
+		header_text = f"Resume SO Approved {date_str}\n\n"
+
+		max_length = 3800
+		messages = []
+		current_chunk = header_text
+
+		for cust_name, prod_list in customer_products.items():
+			block = f"Akumulasi SO {cust_name}\n"
+			for prod_name, qty in prod_list:
+				block += f"Total {prod_name} {qty}\n"
+			block += "\n"
+
+			if len(current_chunk) + len(block) > max_length:
+				messages.append(current_chunk)
+				current_chunk = block
+			else:
+				current_chunk += block
+
+		current_chunk += footer_text
+		messages.append(current_chunk)
 
 		base_url = self.env['ir.config_parameter'].sudo().get_param('web.base.url') or ''
 		base_url = base_url.replace('http://', 'https://')
 		
-		payload = {
-			"chat_id": chatid_number,
-			"text": message_text,
-			"parse_mode": "HTML"
-		}
-
-		if base_url and 'localhost' not in base_url and '127.0.0.1' not in base_url:
-			domain_list = [('state', '=', 'sale'), ('manager_approved', '=', True), ('date_order', '>=', start_utc_dt), ('date_order', '<=', end_utc_dt)]
-			context_dict = {'group_by': 'partner_id'}
-			
-			action_vals = {
-				'name': f'Resume SO Approved {date_str}',
-				'res_model': 'sale.order',
-				'view_mode': 'tree,kanban,form',
-				'domain': str(domain_list),
-				'context': str(context_dict),
-				'target': 'current',
-			}
-			action = self.env['ir.actions.act_window'].sudo().create(action_vals)
-			action_id = action.id
-			
-			odoo_so_url = f"{base_url.rstrip('/')}/web#action={action_id}&model=sale.order&view_type=list"
-			
-			payload["reply_markup"] = {
-				"inline_keyboard": [
-					[
-						{
-							"text": "Lihat List SO Approved di Odoo",
-							"url": odoo_so_url
-						}
-					]
-				]
-			}
-		
 		headers = {'Content-Type': 'application/json'}
-		
-		try:
-			_logger.info("Mengirim payload Telegram send_schedule_product_resume_approved_tele...")
-			response = requests.post(url_tele, headers=headers, data=json.dumps(payload), timeout=10)
-			_logger.info("Response send_schedule_product_resume_approved_tele: status=%s, body=%s", response.status_code, response.text)
-			print("response schedule product resume approved", response.text)
-			response.raise_for_status()
-		except Exception as e:
-			_logger.error("Error Telegram Schedule Product Resume Approved: %s", str(e))
-			print("Error Telegram Schedule Product Resume Approved:", str(e))
-			pass
+
+		for idx, message_text in enumerate(messages):
+			payload = {
+				"chat_id": chatid_number,
+				"text": message_text,
+				"parse_mode": "HTML"
+			}
+
+			if idx == len(messages) - 1 and base_url and 'localhost' not in base_url and '127.0.0.1' not in base_url:
+				domain_list = [('state', '=', 'sale'), ('manager_approved', '=', True), ('date_order', '>=', start_utc_dt), ('date_order', '<=', end_utc_dt)]
+				context_dict = {'group_by': 'partner_id'}
+				
+				action_vals = {
+					'name': f'Resume SO Approved {date_str}',
+					'res_model': 'sale.order',
+					'view_mode': 'tree,kanban,form',
+					'domain': str(domain_list),
+					'context': str(context_dict),
+					'target': 'current',
+				}
+				action = self.env['ir.actions.act_window'].sudo().create(action_vals)
+				action_id = action.id
+				
+				odoo_so_url = f"{base_url.rstrip('/')}/web#action={action_id}&model=sale.order&view_type=list"
+				
+				payload["reply_markup"] = {
+					"inline_keyboard": [
+						[
+							{
+								"text": "Lihat List SO Approved di Odoo",
+								"url": odoo_so_url
+							}
+						]
+					]
+				}
+
+			try:
+				_logger.info("Mengirim payload Telegram send_schedule_product_resume_approved_tele (Bagian %d/%d)...", idx+1, len(messages))
+				response = requests.post(url_tele, headers=headers, data=json.dumps(payload), timeout=10)
+				_logger.info("Response send_schedule_product_resume_approved_tele: status=%s, body=%s", response.status_code, response.text)
+				print("response schedule product resume approved", response.text)
+				response.raise_for_status()
+			except Exception as e:
+				_logger.error("Error Telegram Schedule Product Resume Approved: %s", str(e))
+				print("Error Telegram Schedule Product Resume Approved:", str(e))
+				pass
