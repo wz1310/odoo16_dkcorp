@@ -363,6 +363,7 @@ class ScheduleTele(models.Model):
 			JOIN product_product pp ON sol.product_id = pp.id
 			JOIN product_template pt ON pp.product_tmpl_id = pt.id
 			WHERE so.state = 'sale'
+			  AND (sol.display_type IS NULL OR sol.display_type = '')
 			  AND so.date_order >= %s
 			  AND so.date_order <= %s
 			GROUP BY rp.name, pt.name
