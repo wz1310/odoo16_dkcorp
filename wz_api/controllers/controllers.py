@@ -789,7 +789,7 @@ class ScheduleTele(models.Model):
 
 			if idx == len(messages) - 1 and base_url and 'localhost' not in base_url and '127.0.0.1' not in base_url:
 				domain_list = [('state', '=', 'sale'), ('manager_approved', '=', True), ('date_order', '>=', start_utc_dt), ('date_order', '<=', end_utc_dt)]
-				context_dict = {'group_by': 'partner_id.category_id'}
+				context_dict = {'group_by': 'partner_id'}
 				
 				action_vals = {
 					'name': f'Resume SO Approved {date_str}',
