@@ -700,10 +700,10 @@ class ScheduleTele(models.Model):
 
 		_logger.info("Filter Tanggal (UTC) send_schedule_tag_product_resume_approved_tele: %s s.d %s", start_utc_dt, end_utc_dt)
 
-		# Query SQL dengan JOIN ke kategori partner (tag), menggunakan COALESCE jika partner tidak punya tag ('Tanpa Tag')
+		# Query SQL dengan ekstraksi JSON yang bersih untuk nama Tag dan Produk
 		query = """
 			SELECT 
-				COALESCE(rpc.name, 'Tanpa Tag') AS tag_name,
+				COALESCE(rpc.name->>'id_ID', rpc.name->>'en_US', rpc.name::text, 'Tanpa Tag') AS tag_name,
 				COALESCE(pt.name->>'id_ID', pt.name->>'en_US', pt.name::text) AS product_name,
 				COALESCE(SUM(sol.product_uom_qty), 0.0) AS total_qty
 			FROM sale_order so
